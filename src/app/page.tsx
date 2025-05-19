@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -7,7 +8,7 @@ import InvestmentCard from '@/components/game/InvestmentCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Megaphone, Trophy, ShieldQuestion, Briefcase } from 'lucide-react';
+import { Zap, Megaphone, Trophy, ShieldQuestion, Briefcase, Dice5 } from 'lucide-react';
 
 const initialPlayers: Player[] = [
   { id: 'player1', name: 'Alex Manager', clubName: 'Quantum FC', cash: 1500000, netWorth: 2500000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'male manager' },
@@ -34,9 +35,10 @@ export default function GamePage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [investments, setInvestments] = useState<InvestmentOption[]>(initialInvestments);
   const [currentMarketEvent, setCurrentMarketEvent] = useState<MarketEventType | null>(null);
+  const [diceResult, setDiceResult] = useState<number | null>(null);
   const { toast } = useToast();
 
-  // Ensure client-side only state for market event generation
+  // Ensure client-side only state for random generation
   const [clientHasMounted, setClientHasMounted] = useState(false);
   useEffect(() => {
     setClientHasMounted(true);
@@ -83,6 +85,17 @@ export default function GamePage() {
     // Here you would typically apply the event's effects to the game state
   };
 
+  const handleDiceRoll = () => {
+    if (!clientHasMounted) return; // Prevent server-side random generation
+    const roll = Math.floor(Math.random() * 6) + 1; // Standard 6-sided die
+    setDiceResult(roll);
+    toast({
+      title: "Dice Rolled!",
+      description: `You rolled a ${roll}.`,
+    });
+    // Future: Connect this roll to game logic (e.g., triggering events, player turns)
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="sticky top-0 z-50 p-4 bg-card shadow-md border-b border-border">
@@ -91,9 +104,19 @@ export default function GamePage() {
             <Trophy className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold text-primary">Fintech Football</h1>
           </div>
-          <Button variant="outline" size="sm" onClick={triggerRandomMarketEvent}>
-            <Zap className="mr-2 h-4 w-4" /> Market Shock
-          </Button>
+          <div className="flex items-center gap-3">
+            {diceResult !== null && clientHasMounted && (
+              <span className="text-foreground text-sm">
+                Last Roll: <strong className="text-primary text-lg">{diceResult}</strong>
+              </span>
+            )}
+            <Button variant="outline" size="sm" onClick={handleDiceRoll}>
+              <Dice5 className="mr-2 h-4 w-4" /> Roll Dice
+            </Button>
+            <Button variant="outline" size="sm" onClick={triggerRandomMarketEvent}>
+              <Zap className="mr-2 h-4 w-4" /> Market Shock
+            </Button>
+          </div>
         </div>
       </header>
 
