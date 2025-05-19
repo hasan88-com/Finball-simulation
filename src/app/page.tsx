@@ -483,7 +483,7 @@ export default function GamePage() {
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Trophy className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold text-primary">Fintech Football</h1>
+            <h1 className="text-3xl font-bold text-primary">Finball</h1>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
              {clientHasMounted && !gameEnded && (
@@ -672,7 +672,7 @@ export default function GamePage() {
       </main>
 
       <footer className="p-4 bg-card text-center text-sm text-muted-foreground border-t border-border">
-        © {new Date().getFullYear()} Fintech Football Inc. All rights reserved. (Round {currentRound <= MAX_ROUNDS ? currentRound : MAX_ROUNDS} = Year {currentRound <= MAX_ROUNDS ? currentRound : MAX_ROUNDS})
+        © {new Date().getFullYear()} Finball Inc. All rights reserved. (Round {currentRound <= MAX_ROUNDS ? currentRound : MAX_ROUNDS} = Year {currentRound <= MAX_ROUNDS ? currentRound : MAX_ROUNDS})
       </footer>
     </div>
   );

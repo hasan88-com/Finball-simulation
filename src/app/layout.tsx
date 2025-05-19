@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({ // Corrected usage
 });
 
 export const metadata: Metadata = {
-  title: 'Fintech Football Investment Game',
+  title: 'Finball',
   description: 'Manage your football club to financial victory!',
 };
 
