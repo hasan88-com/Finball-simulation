@@ -508,7 +508,7 @@ export default function FinballGamePage() {
           </CardContent>
         </Card>
          <footer className="absolute bottom-4 text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Finball Inc. All rights reserved.
+            © 2025 Finball Inc. All rights reserved.
         </footer>
       </div>
     );
@@ -549,7 +549,7 @@ export default function FinballGamePage() {
           </CardContent>
         </Card>
          <footer className="absolute bottom-4 text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Finball Inc. All rights reserved.
+            © 2025 Finball Inc. All rights reserved.
         </footer>
       </div>
     );
@@ -778,7 +778,7 @@ export default function FinballGamePage() {
       </main>
 
       <footer className="p-4 bg-card text-center text-sm text-muted-foreground border-t border-border">
-        © {new Date().getFullYear()} Finball Inc. All rights reserved. 
+        © 2025 Finball Inc. All rights reserved. 
         {gameStage === 'playing' && !gameEnded && ` (Round ${currentRound <= MAX_ROUNDS ? currentRound : MAX_ROUNDS} = Year ${currentRound <= MAX_ROUNDS ? currentRound : MAX_ROUNDS})`}
       </footer>
     </div>
