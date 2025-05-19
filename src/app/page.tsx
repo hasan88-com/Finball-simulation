@@ -2,13 +2,13 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import type { Player, InvestmentOption, MarketEvent as MarketEventType } from '@/types';
+import type { Player, InvestmentOption, MarketEvent as MarketEventType, MarketEventImpact } from '@/types';
 import PlayerPanel from '@/components/game/PlayerPanel';
 import InvestmentCard from '@/components/game/InvestmentCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Megaphone, Trophy, ShieldQuestion, Briefcase, Dice5, UserCircle, SkipForward, Repeat, Award } from 'lucide-react';
+import { Zap, Megaphone, Trophy, ShieldQuestion, ShieldCheck, Briefcase, Dice5, UserCircle, SkipForward, Repeat, Award } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatCurrency } from '@/lib/game-utils';
 
@@ -21,41 +21,89 @@ const initialPlayerState = (): Player[] => [
 const COMMON_DISCOUNT_RATE = 0.10;
 const COMMON_DURATION_YEARS = 7;
 
-// Adjusted to ensure a mix of NPVs, with more positive, and some slightly negative.
-// Target NPVs are illustrative; actual NPV depends on precise calculation.
+// Target NPVs are illustrative. Costs adjusted to meet target NPV ranges with fixed duration/discount rate.
 const initialInvestments: InvestmentOption[] = [
-  // Positive NPV
-  { id: 'inv1', name: 'Youth Academy Upgrade', description: 'Boost talent development.', cost: 534210, expectedAnnualCashFlow: 120000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'football academy' }, // NPV ~+50k
-  { id: 'inv2', name: 'Stadium Expansion', description: 'Increase matchday revenue.', cost: 1117105, expectedAnnualCashFlow: 250000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'stadium crowd' }, // NPV ~+100k
-  { id: 'inv3', name: 'Digital Fan Platform', description: 'Monetize global fanbase.', cost: 320789, expectedAnnualCashFlow: 70000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'digital technology' }, // NPV ~+20k
-  { id: 'inv4', name: 'Scouting Network Expansion', description: 'Discover hidden talents.', cost: 408158, expectedAnnualCashFlow: 90000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global scouts' }, // NPV ~+30k
-  { id: 'inv5', name: 'Community Outreach Program', description: 'Enhance brand image.', cost: 165395, expectedAnnualCashFlow: 35000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'community sports' }, // NPV ~+5k
-  { id: 'inv6', name: 'Player Fitness Center', description: 'Optimize performance.', cost: 708947, expectedAnnualCashFlow: 160000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports science' }, // NPV ~+70k
-  { id: 'inv7', name: 'International Pre-Season Tour', description: 'Expand global brand.', cost: 592895, expectedAnnualCashFlow: 130000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global tour' }, // NPV ~+40k
-  { id: 'inv8', name: 'E-sports Team Launch', description: 'Tap into e-sports market.', cost: 252763, expectedAnnualCashFlow: 55000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'esports team' }, // NPV ~+15k
-  { id: 'inv9', name: 'Sustainable Energy Initiative', description: 'Reduce stadium op costs.', cost: 364474, expectedAnnualCashFlow: 80000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'solar stadium' }, // NPV ~+25k
+  // Positive NPV (aiming for diverse positive values)
+  { id: 'inv1', name: 'Youth Academy Upgrade', description: 'Boost talent development.', cost: 435895, expectedAnnualCashFlow: 120000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'football academy' }, // NPV ~+150k
+  { id: 'inv2', name: 'Stadium Expansion', description: 'Increase matchday revenue.', cost: 971053, expectedAnnualCashFlow: 250000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'stadium crowd' }, // NPV ~+250k
+  { id: 'inv3', name: 'Digital Fan Platform', description: 'Monetize global fanbase.', cost: 290789, expectedAnnualCashFlow: 70000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'digital technology' }, // NPV ~+50k
+  { id: 'inv4', name: 'Scouting Network Expansion', description: 'Discover hidden talents.', cost: 340000, expectedAnnualCashFlow: 90000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global scouts' }, // NPV ~+98k
+  { id: 'inv5', name: 'Community Outreach Program', description: 'Enhance brand image.', cost: 145395, expectedAnnualCashFlow: 35000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'community sports' }, // NPV ~+25k
+  { id: 'inv6', name: 'Player Fitness Center', description: 'Optimize performance.', cost: 628947, expectedAnnualCashFlow: 160000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports science' }, // NPV ~+150k
+  { id: 'inv7', name: 'International Pre-Season Tour', description: 'Expand global brand.', cost: 502895, expectedAnnualCashFlow: 130000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global tour' }, // NPV ~+130k
+  { id: 'inv8', name: 'E-sports Team Launch', description: 'Tap into e-sports market.', cost: 212763, expectedAnnualCashFlow: 55000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'esports team' }, // NPV ~+55k
+  { id: 'inv9', name: 'Sustainable Energy Initiative', description: 'Reduce stadium op costs.', cost: 314474, expectedAnnualCashFlow: 80000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'solar stadium' }, // NPV ~+75k
   
-  // Negative NPV (aiming for -1k to -10k range)
+  // Negative NPV (aiming for -2k to -10k range)
   { id: 'inv10', name: 'Merchandise Line Overhaul', description: 'Refresh club shop (risky).', cost: 199737, expectedAnnualCashFlow: 40000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports merchandise' }, // NPV ~-5k
   { id: 'inv11', name: 'Hospitality Suite Renovation', description: 'Premium suites (high cost).', cost: 399474, expectedAnnualCashFlow: 80000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'luxury suite' }, // NPV ~-10k
-  { id: 'inv12', name: 'Club Museum (Low Footfall)', description: 'New revenue stream (niche).', cost: 732263, expectedAnnualCashFlow: 150000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'club museum' }, // NPV ~-2k
+  { id: 'inv12', name: 'Club Museum (Low Footfall)', description: 'New revenue stream (niche).', cost: 737105, expectedAnnualCashFlow: 150000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'club museum' }, // NPV ~-7k
 ];
 
 
 const sampleMarketEvents: MarketEventType[] = [
-  { id: 'event1', title: 'Economic Boom!', description: 'Increased sponsorship revenue for all clubs.', impactDescription: '+10% cash for all players', variant: 'default' },
-  { id: 'event2', title: 'Transfer Market Frenzy', description: 'Player valuations skyrocket unexpectedly.', impactDescription: 'Net worth of player assets may increase', variant: 'default' },
-  { id: 'event3', title: 'Major Sponsor Pulls Out', description: 'One club loses a key sponsorship deal.', impactDescription: '-$200,000 cash for a random player', variant: 'destructive' },
-  { id: 'event4', title: 'Regulatory Changes', description: 'New league rules impact club finances.', impactDescription: 'Clubs may face new operational costs', variant: 'destructive' },
+  {
+    id: 'event_tv_bonus',
+    title: 'Unexpected TV Rights Bonus!',
+    description: 'A surprise surge in TV viewership has led to an unexpected bonus distribution.',
+    impact: { cashChange: 75000, netWorthChange: 25000 },
+    getImpactPlayerMessage: (playerName, cash, nw) => 
+      `${playerName} received an unexpected TV Rights bonus! Cash +${formatCurrency(cash)}, Net Worth +${formatCurrency(nw)}.`,
+    variant: 'default',
+  },
+  {
+    id: 'event_sponsor_loss',
+    title: 'Key Sponsor Backs Out!',
+    description: 'Due to unforeseen circumstances, a major club sponsor has withdrawn their support.',
+    impact: { cashChange: -100000, netWorthChange: -50000 },
+    getImpactPlayerMessage: (playerName, cash, nw) => 
+      `${playerName}'s club lost a key sponsor! Cash ${formatCurrency(cash)}, Net Worth ${formatCurrency(nw)}.`,
+    variant: 'destructive',
+  },
+  {
+    id: 'event_player_sale_windfall',
+    title: 'Player Sale Windfall',
+    description: 'A star player sale brought in more cash than expected.',
+    impact: { cashChange: 150000, netWorthPercentageChange: 0.05 }, // Net worth also slightly up due to perceived club value
+    getImpactPlayerMessage: (playerName, cash, nw) =>
+      `${playerName}'s club benefits from a player sale windfall! Cash +${formatCurrency(cash)}, Net Worth +${formatCurrency(nw)}.`,
+    variant: 'default',
+  },
+  {
+    id: 'event_stadium_repair',
+    title: 'Urgent Stadium Repairs',
+    description: 'Unexpected structural issues require immediate and costly stadium repairs.',
+    impact: { cashChange: -120000, netWorthChange: -60000 }, // Repairs might slightly lower asset value if not capitalized fully
+    getImpactPlayerMessage: (playerName, cash, nw) =>
+      `${playerName}'s club faces urgent stadium repair costs. Cash ${formatCurrency(cash)}, Net Worth ${formatCurrency(nw)}.`,
+    variant: 'destructive',
+  },
+  {
+    id: 'event_market_value_increase',
+    title: 'League Popularity Soars!',
+    description: 'The whole league enjoys increased popularity, boosting club valuations.',
+    impact: { netWorthPercentageChange: 0.10 }, // 10% increase in net worth
+    getImpactPlayerMessage: (playerName, cash, nw) =>
+      `League popularity boosts ${playerName}'s club valuation! Net Worth +${formatCurrency(nw)}.`,
+    variant: 'default',
+  }
 ];
 
 const MAX_ROUNDS = 3;
+
+interface CurrentEventDisplay {
+  title: string;
+  description: string; // General event description
+  impactMessage: string; // Specific message for the affected player
+  variant: 'default' | 'destructive';
+}
+
 
 export default function GamePage() {
   const [players, setPlayers] = useState<Player[]>(initialPlayerState());
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [investments, setInvestments] = useState<InvestmentOption[]>(initialInvestments);
-  const [currentMarketEvent, setCurrentMarketEvent] = useState<MarketEventType | null>(null);
+  const [currentEventForDisplay, setCurrentEventForDisplay] = useState<CurrentEventDisplay | null>(null);
   const [diceResult, setDiceResult] = useState<number | null>(null);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState<number>(0);
   const { toast } = useToast();
@@ -63,6 +111,7 @@ export default function GamePage() {
   const [currentRound, setCurrentRound] = useState<number>(1);
   const [gameEnded, setGameEnded] = useState<boolean>(false);
   const [winner, setWinner] = useState<Player | null>(null);
+  const [shockAvailableThisRound, setShockAvailableThisRound] = useState<boolean>(true);
 
   const [clientHasMounted, setClientHasMounted] = useState(false);
   useEffect(() => {
@@ -71,12 +120,13 @@ export default function GamePage() {
 
   const resetGame = () => {
     setPlayers(initialPlayerState());
-    setCurrentMarketEvent(null);
+    setCurrentEventForDisplay(null);
     setDiceResult(null);
     setCurrentPlayerIndex(0);
     setCurrentRound(1);
     setGameEnded(false);
     setWinner(null);
+    setShockAvailableThisRound(true);
     toast({
       title: "Game Reset",
       description: "A new game has started!",
@@ -92,16 +142,19 @@ export default function GamePage() {
           const player = { ...p };
           if (player.cash >= investment.cost) {
             player.cash -= investment.cost;
+            // Net worth increases by the NPV if it's positive.
+            // This reflects the value added to the club beyond the initial cost.
             if (npv > 0) {
               player.netWorth += npv;
               player.cumulativeNpvEarned += npv;
             }
-            // Note: Negative NPV investments still cost cash but don't positively impact net worth or cumulative NPV directly.
-            // Their impact is primarily strategic (e.g., opportunity cost).
+            // If NPV is negative, cash is spent, net worth isn't directly reduced by NPV here,
+            // but the loss of cash (an asset) implicitly reduces net worth.
+            // The initial investment cost directly reduces cash.
             
             toast({
               title: `Investment Successful for ${player.name}!`,
-              description: `${player.name} invested in ${investment.name}. Cash: ${player.cash.toLocaleString()}, Net Worth: ${player.netWorth.toLocaleString()}, Cum. NPV: ${player.cumulativeNpvEarned.toLocaleString()}`,
+              description: `${player.name} invested in ${investment.name}. Cost: ${formatCurrency(investment.cost)}, NPV: ${formatCurrency(npv)}. Cash: ${formatCurrency(player.cash)}, Net Worth: ${formatCurrency(player.netWorth)}, Cum. NPV: ${formatCurrency(player.cumulativeNpvEarned)}`,
             });
           } else {
             toast({
@@ -118,18 +171,60 @@ export default function GamePage() {
     });
   };
 
-  const triggerRandomMarketEvent = () => {
-    if (gameEnded || !clientHasMounted) return;
-    const randomIndex = Math.floor(Math.random() * sampleMarketEvents.length);
-    const event = sampleMarketEvents[randomIndex];
-    setCurrentMarketEvent(event);
-    toast({
-      title: `Market Event: ${event.title}`,
+ const triggerRandomMarketEvent = () => {
+    if (gameEnded || !clientHasMounted || !shockAvailableThisRound) return;
+
+    const randomEventIndex = Math.floor(Math.random() * sampleMarketEvents.length);
+    const event = sampleMarketEvents[randomEventIndex];
+
+    const randomPlayerIndex = Math.floor(Math.random() * players.length);
+    const targetPlayer = players[randomPlayerIndex];
+
+    let actualCashChange = event.impact.cashChange || 0;
+    let actualNetWorthChange = event.impact.netWorthChange || 0;
+
+    if (event.impact.cashPercentageChange) {
+      actualCashChange += targetPlayer.cash * event.impact.cashPercentageChange;
+    }
+    if (event.impact.netWorthPercentageChange) {
+      actualNetWorthChange += targetPlayer.netWorth * event.impact.netWorthPercentageChange;
+    }
+    // Ensure changes are integers for simplicity in display and state
+    actualCashChange = Math.round(actualCashChange);
+    actualNetWorthChange = Math.round(actualNetWorthChange);
+
+
+    setPlayers(prevPlayers => 
+      prevPlayers.map((p, index) => {
+        if (index === randomPlayerIndex) {
+          return {
+            ...p,
+            cash: Math.max(0, p.cash + actualCashChange), // Prevent negative cash from event
+            netWorth: p.netWorth + actualNetWorthChange,
+          };
+        }
+        return p;
+      })
+    );
+    
+    const impactMessage = event.getImpactPlayerMessage(targetPlayer.name, actualCashChange, actualNetWorthChange);
+
+    setCurrentEventForDisplay({
+      title: event.title,
       description: event.description,
+      impactMessage: impactMessage,
       variant: event.variant,
-      duration: 5000,
     });
+    
+    toast({
+      title: `Market Event: ${event.title}!`,
+      description: `${event.description} ${impactMessage}`, // Include player specific message in toast too
+      variant: event.variant,
+      duration: 7000,
+    });
+    setShockAvailableThisRound(false);
   };
+
 
   const handleDiceRoll = () => {
     if (gameEnded || !clientHasMounted || diceResult !== null) return;
@@ -159,7 +254,16 @@ export default function GamePage() {
   };
 
   const handleNextPlayer = () => {
-    if (gameEnded || !clientHasMounted) return;
+    if (gameEnded || !clientHasMounted || diceResult === null) {
+        if (diceResult === null && !gameEnded) {
+            toast({
+                title: "Roll Dice First!",
+                description: `${players[currentPlayerIndex].name}, please roll the dice to select a project before proceeding.`,
+                variant: "destructive"
+            });
+        }
+        return;
+    }
     
     let nextPlayer = (currentPlayerIndex + 1);
     if (nextPlayer >= players.length) { // End of a round
@@ -170,9 +274,10 @@ export default function GamePage() {
         return; // Stop further turn processing
       }
       setCurrentRound(nextRound);
+      setShockAvailableThisRound(true); // Re-enable shock for the new round
       toast({
         title: `Round ${nextRound} Starting!`,
-        description: `It's now ${players[nextPlayer].name}'s turn. Roll the dice!`,
+        description: `It's now ${players[nextPlayer].name}'s turn. Roll the dice! A new Market Shock can be triggered.`,
       });
     } else {
        toast({
@@ -215,10 +320,10 @@ export default function GamePage() {
             <Button variant="outline" size="sm" onClick={handleDiceRoll} disabled={!clientHasMounted || diceResult !== null || gameEnded}>
               <Dice5 className="mr-2 h-4 w-4" /> Roll Dice
             </Button>
-             <Button variant="outline" size="sm" onClick={handleNextPlayer} disabled={!clientHasMounted || gameEnded}>
+             <Button variant="outline" size="sm" onClick={handleNextPlayer} disabled={!clientHasMounted || gameEnded || diceResult === null}>
               <SkipForward className="mr-2 h-4 w-4" /> Next
             </Button>
-            <Button variant="secondary" size="sm" onClick={triggerRandomMarketEvent} disabled={!clientHasMounted || gameEnded}>
+            <Button variant="secondary" size="sm" onClick={triggerRandomMarketEvent} disabled={!clientHasMounted || gameEnded || !shockAvailableThisRound}>
               <Zap className="mr-2 h-4 w-4" /> Shock
             </Button>
             {gameEnded && (
@@ -253,7 +358,7 @@ export default function GamePage() {
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
                   <Briefcase className="h-7 w-7 text-accent" />
-                  Investment Opportunities {currentPlayer && !gameEnded ? `(for ${currentPlayer.name})` : ''}
+                  Investment Opportunities {clientHasMounted && currentPlayer && !gameEnded ? `(for ${currentPlayer.name})` : ''}
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -281,18 +386,24 @@ export default function GamePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {!currentMarketEvent && clientHasMounted && !gameEnded && (
+                {!currentEventForDisplay && clientHasMounted && !gameEnded && (
                   <div className="text-center py-6 text-muted-foreground">
                     <ShieldQuestion className="h-12 w-12 mx-auto mb-2" />
                     <p>No major market events currently. Stay vigilant!</p>
-                    <Button onClick={triggerRandomMarketEvent} className="mt-4" disabled={!clientHasMounted || gameEnded}>Check for Events</Button>
+                    <Button 
+                      onClick={triggerRandomMarketEvent} 
+                      className="mt-4" 
+                      disabled={!clientHasMounted || gameEnded || !shockAvailableThisRound}
+                    >
+                      Trigger Market Event
+                    </Button>
                   </div>
                 )}
-                {currentMarketEvent && clientHasMounted && !gameEnded && (
-                  <div className={`mt-4 p-4 rounded-md shadow ${currentMarketEvent.variant === 'destructive' ? 'bg-destructive/20 border-destructive border' : 'bg-secondary/70'}`}>
-                    <h4 className={`font-semibold text-lg ${currentMarketEvent.variant === 'destructive' ? 'text-destructive-foreground' : 'text-primary'}`}>{currentMarketEvent.title}</h4>
-                    <p className="text-sm mt-1">{currentMarketEvent.description}</p>
-                    <p className="text-xs mt-2 text-muted-foreground">Impact: {currentMarketEvent.impactDescription}</p>
+                {currentEventForDisplay && clientHasMounted && !gameEnded && (
+                  <div className={`mt-4 p-4 rounded-md shadow ${currentEventForDisplay.variant === 'destructive' ? 'bg-destructive/20 border-destructive border' : 'bg-secondary/70'}`}>
+                    <h4 className={`font-semibold text-lg ${currentEventForDisplay.variant === 'destructive' ? 'text-destructive-foreground' : 'text-primary'}`}>{currentEventForDisplay.title}</h4>
+                    <p className="text-sm mt-1">{currentEventForDisplay.description}</p>
+                    <p className="text-sm mt-2 font-medium">{currentEventForDisplay.impactMessage}</p>
                   </div>
                 )}
                  {gameEnded && clientHasMounted && (
