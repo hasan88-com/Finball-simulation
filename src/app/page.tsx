@@ -23,14 +23,14 @@ const initialInvestments: InvestmentOption[] = [
   { id: 'inv2', name: 'Stadium Expansion', description: 'Increase matchday revenue with more seats.', cost: 1200000, expectedAnnualCashFlow: 200000, durationYears: 10, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'stadium crowd' },
   { id: 'inv3', name: 'Digital Fan Platform', description: 'Monetize global fanbase through new tech.', cost: 300000, expectedAnnualCashFlow: 70000, durationYears: 5, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'digital technology' },
   { id: 'inv4', name: 'Merchandise Line Overhaul', description: 'Refresh club shop & online store for higher sales.', cost: 200000, expectedAnnualCashFlow: 50000, durationYears: 4, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports merchandise' },
-  { id: 'inv5', name: 'Scouting Network Expansion', description: 'Discover hidden talents globally.', cost: 400000, expectedAnnualCashFlow: 60000, durationYears: 8, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global scouts' }, // NPV: (60k * 5.3349) - 400k = 320,094 - 400k = -79,906
-  { id: 'inv6', name: 'Community Outreach Program', description: 'Enhance brand image and local support.', cost: 150000, expectedAnnualCashFlow: 25000, durationYears: 7, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'community sports' }, // NPV: (25k * 4.8684) - 150k = 121,710 - 150k = -28,290
-  { id: 'inv7', name: 'Player Fitness & Science Center', description: 'Optimize player performance and reduce injuries.', cost: 700000, expectedAnnualCashFlow: 150000, durationYears: 10, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports science' }, // NPV: (150k * 6.1446) - 700k = 921,690 - 700k = 221,690
-  { id: 'inv8', name: 'Hospitality Suite Renovation', description: 'Increase premium revenue on matchdays.', cost: 450000, expectedAnnualCashFlow: 90000, durationYears: 6, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'luxury suite' }, // NPV: (90k * 4.3553) - 450k = 391,977 - 450k = -58,023
-  { id: 'inv9', name: 'International Pre-Season Tour', description: 'Expand global brand presence and merchandise sales.', cost: 600000, expectedAnnualCashFlow: 130000, durationYears: 5, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global tour' }, // NPV: (130k * 3.7908) - 600k = 492,804 - 600k = -107,196 (Made this one intentionally more negative for variety)
-  { id: 'inv10', name: 'E-sports Team Launch', description: 'Tap into the booming e-sports market.', cost: 250000, expectedAnnualCashFlow: 65000, durationYears: 5, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'esports team' }, // NPV: (65k * 3.7908) - 250k = 246,402 - 250k = -3,598 (Slightly negative)
-  { id: 'inv11', name: 'Club Museum & Fan Experience Center', description: 'Create a new revenue stream from tourism and history.', cost: 800000, expectedAnnualCashFlow: 180000, durationYears: 8, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'club museum' }, // NPV: (180k * 5.3349) - 800k = 960,282 - 800k = 160,282
-  { id: 'inv12', name: 'Sustainable Energy Initiative for Stadium', description: 'Reduce operational costs and improve green credentials.', cost: 350000, expectedAnnualCashFlow: 75000, durationYears: 7, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'solar stadium' }, // NPV: (75k * 4.8684) - 350k = 365,130 - 350k = 15,130
+  { id: 'inv5', name: 'Scouting Network Expansion', description: 'Discover hidden talents globally.', cost: 400000, expectedAnnualCashFlow: 60000, durationYears: 8, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global scouts' },
+  { id: 'inv6', name: 'Community Outreach Program', description: 'Enhance brand image and local support.', cost: 150000, expectedAnnualCashFlow: 25000, durationYears: 7, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'community sports' },
+  { id: 'inv7', name: 'Player Fitness & Science Center', description: 'Optimize player performance and reduce injuries.', cost: 700000, expectedAnnualCashFlow: 150000, durationYears: 10, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports science' },
+  { id: 'inv8', name: 'Hospitality Suite Renovation', description: 'Increase premium revenue on matchdays.', cost: 450000, expectedAnnualCashFlow: 90000, durationYears: 6, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'luxury suite' },
+  { id: 'inv9', name: 'International Pre-Season Tour', description: 'Expand global brand presence and merchandise sales.', cost: 600000, expectedAnnualCashFlow: 130000, durationYears: 5, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global tour' },
+  { id: 'inv10', name: 'E-sports Team Launch', description: 'Tap into the booming e-sports market.', cost: 250000, expectedAnnualCashFlow: 65000, durationYears: 5, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'esports team' },
+  { id: 'inv11', name: 'Club Museum & Fan Experience Center', description: 'Create a new revenue stream from tourism and history.', cost: 800000, expectedAnnualCashFlow: 180000, durationYears: 8, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'club museum' },
+  { id: 'inv12', name: 'Sustainable Energy Initiative for Stadium', description: 'Reduce operational costs and improve green credentials.', cost: 350000, expectedAnnualCashFlow: 75000, durationYears: 7, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'solar stadium' },
 ];
 
 
@@ -66,7 +66,7 @@ export default function GamePage() {
         
         toast({
           title: `Investment Successful for ${player.name}!`,
-          description: `${player.name} invested in ${investment.name}. Cash: ${player.cash}, Net Worth: ${player.netWorth}`,
+          description: `${player.name} invested in ${investment.name}. Cash: ${player.cash.toLocaleString()}, Net Worth: ${player.netWorth.toLocaleString()}`,
         });
       } else {
         toast({
@@ -98,17 +98,17 @@ export default function GamePage() {
     setDiceResult(roll);
     toast({
       title: `${players[currentPlayerIndex].name} Rolled!`,
-      description: `They rolled a ${roll}.`,
+      description: `They rolled a ${roll}. Project ${roll} is now available.`,
     });
-    // Future: Connect this roll to game logic
   };
 
   const handleNextPlayer = () => {
     setCurrentPlayerIndex((prevIndex) => (prevIndex + 1) % players.length);
-    setDiceResult(null); // Reset dice result for the new player
-     toast({
+    setDiceResult(null); 
+    const nextPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    toast({
       title: "Next Player's Turn",
-      description: `It's now ${players[(currentPlayerIndex + 1) % players.length].name}'s turn.`,
+      description: `It's now ${players[nextPlayerIndex].name}'s turn. Roll the dice!`,
     });
   };
   
@@ -131,7 +131,7 @@ export default function GamePage() {
             )}
             {diceResult !== null && clientHasMounted && (
               <span className="text-foreground text-sm">
-                Last Roll: <strong className="text-primary text-lg">{diceResult}</strong>
+                Rolled: <strong className="text-primary text-lg">{diceResult}</strong>
               </span>
             )}
             <Button variant="outline" size="sm" onClick={handleDiceRoll} disabled={!clientHasMounted}>
@@ -164,15 +164,18 @@ export default function GamePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {investments.map((inv) => (
-                  <InvestmentCard 
-                    key={inv.id} 
-                    investment={inv} 
-                    onInvest={(investment, npv) => handleInvestment(investment, npv)} 
-                    isCurrentPlayer={true} // Simplified for now, assumes current player can always invest
-                                        // In a more complex setup, you might pass currentPlayerId and check inside InvestmentCard
-                  />
-                ))}
+                {investments.map((inv, idx) => {
+                  const isSelectedByDice = diceResult !== null && idx === diceResult - 1;
+                  return (
+                    <InvestmentCard 
+                      key={inv.id} 
+                      investment={inv} 
+                      onInvest={(investment, npv) => handleInvestment(investment, npv)} 
+                      isCurrentPlayer={true} // True because this page is for the current player
+                      isSelectedByDice={isSelectedByDice}
+                    />
+                  );
+                })}
               </CardContent>
             </Card>
 
@@ -210,5 +213,3 @@ export default function GamePage() {
     </div>
   );
 }
-
-    

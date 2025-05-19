@@ -6,39 +6,38 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-// Input and Label are not used, so they are removed to avoid unused import warnings
-// import { Input } from '@/components/ui/input';
-// import { Label } from '@/components/ui/label';
 import { calculateNPV, formatCurrency } from '@/lib/game-utils';
-import { Banknote, Briefcase, CalendarDays, BarChartBig, Percent, TrendingUp, TrendingDown } from 'lucide-react'; // AlertTriangle removed as it's not used
+import { Banknote, Briefcase, CalendarDays, BarChartBig, Percent, TrendingUp, TrendingDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface InvestmentCardProps {
   investment: InvestmentOption;
   onInvest: (investment: InvestmentOption, npv: number) => void;
-  isCurrentPlayer: boolean; // To enable/disable investment based on turn
+  isCurrentPlayer: boolean; // Is the overall turn for the current player of the game?
+  isSelectedByDice: boolean; // Is this specific card selected by the dice roll?
 }
 
-export default function InvestmentCard({ investment, onInvest, isCurrentPlayer }: InvestmentCardProps) {
+export default function InvestmentCard({ investment, onInvest, isCurrentPlayer, isSelectedByDice }: InvestmentCardProps) {
   const [calculatedNpv, setCalculatedNpv] = useState<number | null>(null);
   const [showNpv, setShowNpv] = useState(false);
   const { toast } = useToast();
 
-  // Recalculate NPV if investment data changes (e.g. discount rate from market event)
+  // Determine if this card can be interacted with
+  const canInteractWithCard = isCurrentPlayer && isSelectedByDice;
+
   useEffect(() => {
-    if (showNpv) { // Only recalculate if NPV is already shown, to avoid spamming
-        const npv = calculateNPV(
-            investment.expectedAnnualCashFlow,
-            investment.discountRate,
-            investment.durationYears,
-            investment.cost
-        );
-        setCalculatedNpv(npv);
+    // Reset NPV analysis if the card is no longer selected or it's not the player's turn
+    if (!canInteractWithCard) {
+      setShowNpv(false);
+      setCalculatedNpv(null);
     }
-  }, [investment, showNpv]);
+  }, [canInteractWithCard]);
 
 
   const handleAnalyzeNpv = () => {
+    if (!canInteractWithCard) return; // Should be disabled, but as a safeguard
+
     const npv = calculateNPV(
       investment.expectedAnnualCashFlow,
       investment.discountRate,
@@ -54,6 +53,8 @@ export default function InvestmentCard({ investment, onInvest, isCurrentPlayer }
   };
 
   const handleInvest = () => {
+    if (!canInteractWithCard) return; // Should be disabled
+
     if (calculatedNpv === null) {
       toast({
         title: "Analysis Required",
@@ -63,8 +64,7 @@ export default function InvestmentCard({ investment, onInvest, isCurrentPlayer }
       return;
     }
     onInvest(investment, calculatedNpv);
-    // Don't show success toast here, it's handled in GamePage for player context
-    // Reset for next interaction or if it's a one-time purchase visual
+    // Reset after investment for this card
     setShowNpv(false); 
     setCalculatedNpv(null);
   };
@@ -77,7 +77,11 @@ export default function InvestmentCard({ investment, onInvest, isCurrentPlayer }
   ) : null;
 
   return (
-    <Card className="shadow-lg flex flex-col">
+    <Card className={cn(
+      "shadow-lg flex flex-col transition-all duration-300 ease-in-out",
+      canInteractWithCard ? "ring-2 ring-primary border-primary shadow-primary/30" : "opacity-75 hover:opacity-100",
+      !isCurrentPlayer && "opacity-50 cursor-not-allowed" // If it's not the current player's board essentially
+    )}>
       <CardHeader className="pb-3">
         <div className="relative w-full h-40 rounded-t-md overflow-hidden mb-3">
           <Image 
@@ -111,16 +115,21 @@ export default function InvestmentCard({ investment, onInvest, isCurrentPlayer }
           <Percent className="h-4 w-4 text-muted-foreground" />
           <strong>Discount Rate:</strong> {(investment.discountRate * 100).toFixed(1)}%
         </div>
-        {showNpv && NpvDisplay}
+        {showNpv && canInteractWithCard && NpvDisplay}
       </CardContent>
       <CardFooter className="flex flex-col sm:flex-row gap-2 pt-4">
-        <Button onClick={handleAnalyzeNpv} variant="outline" className="w-full sm:w-auto" disabled={!isCurrentPlayer}>
+        <Button 
+          onClick={handleAnalyzeNpv} 
+          variant="outline" 
+          className="w-full sm:w-auto" 
+          disabled={!canInteractWithCard}
+        >
           Analyze NPV
         </Button>
         <Button 
           onClick={handleInvest} 
           className="w-full sm:w-auto bg-primary hover:bg-primary/90"
-          disabled={!showNpv || !isCurrentPlayer}
+          disabled={!canInteractWithCard || !showNpv}
         >
           Invest
         </Button>
@@ -128,5 +137,3 @@ export default function InvestmentCard({ investment, onInvest, isCurrentPlayer }
     </Card>
   );
 }
-
-    
