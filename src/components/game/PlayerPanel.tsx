@@ -1,10 +1,11 @@
+
 "use client";
 
 import type { Player } from '@/types';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Landmark, DollarSign, TrendingUp, ShieldCheck } from 'lucide-react';
+import { Users, Landmark, DollarSign, TrendingUp, ShieldCheck, BarChartHorizontalBig } from 'lucide-react';
 import { formatCurrency } from '@/lib/game-utils';
 
 interface PlayerPanelProps {
@@ -40,6 +41,13 @@ export default function PlayerPanel({ player }: PlayerPanelProps) {
             <span className="font-medium">Net Worth</span>
           </div>
           <span className="font-semibold text-lg">{formatCurrency(player.netWorth)}</span>
+        </div>
+        <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-md shadow-sm">
+          <div className="flex items-center gap-2 text-foreground">
+            <BarChartHorizontalBig className="h-5 w-5 text-primary" />
+            <span className="font-medium">Cumulative NPV</span>
+          </div>
+          <span className="font-semibold text-lg">{formatCurrency(player.cumulativeNpvEarned)}</span>
         </div>
          <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-md shadow-sm">
           <div className="flex items-center gap-2 text-foreground">

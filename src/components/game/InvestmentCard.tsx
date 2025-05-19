@@ -14,29 +14,28 @@ import { cn } from '@/lib/utils';
 interface InvestmentCardProps {
   investment: InvestmentOption;
   onInvest: (investment: InvestmentOption, npv: number) => void;
-  isCurrentPlayer: boolean; // Is the overall turn for the current player of the game?
-  isSelectedByDice: boolean; // Is this specific card selected by the dice roll?
+  isCurrentPlayerTurn: boolean; 
+  isSelectedByDice: boolean; 
+  isGameEnded: boolean;
 }
 
-export default function InvestmentCard({ investment, onInvest, isCurrentPlayer, isSelectedByDice }: InvestmentCardProps) {
+export default function InvestmentCard({ investment, onInvest, isCurrentPlayerTurn, isSelectedByDice, isGameEnded }: InvestmentCardProps) {
   const [calculatedNpv, setCalculatedNpv] = useState<number | null>(null);
   const [showNpv, setShowNpv] = useState(false);
   const { toast } = useToast();
 
-  // Determine if this card can be interacted with
-  const canInteractWithCard = isCurrentPlayer && isSelectedByDice;
+  const canInteractWithCard = isCurrentPlayerTurn && isSelectedByDice && !isGameEnded;
 
   useEffect(() => {
-    // Reset NPV analysis if the card is no longer selected or it's not the player's turn
-    if (!canInteractWithCard) {
+    if (!canInteractWithCard || isGameEnded) {
       setShowNpv(false);
       setCalculatedNpv(null);
     }
-  }, [canInteractWithCard]);
+  }, [canInteractWithCard, isGameEnded]);
 
 
   const handleAnalyzeNpv = () => {
-    if (!canInteractWithCard) return; // Should be disabled, but as a safeguard
+    if (!canInteractWithCard) return;
 
     const npv = calculateNPV(
       investment.expectedAnnualCashFlow,
@@ -53,7 +52,7 @@ export default function InvestmentCard({ investment, onInvest, isCurrentPlayer, 
   };
 
   const handleInvest = () => {
-    if (!canInteractWithCard) return; // Should be disabled
+    if (!canInteractWithCard) return;
 
     if (calculatedNpv === null) {
       toast({
@@ -64,7 +63,6 @@ export default function InvestmentCard({ investment, onInvest, isCurrentPlayer, 
       return;
     }
     onInvest(investment, calculatedNpv);
-    // Reset after investment for this card
     setShowNpv(false); 
     setCalculatedNpv(null);
   };
@@ -79,8 +77,8 @@ export default function InvestmentCard({ investment, onInvest, isCurrentPlayer, 
   return (
     <Card className={cn(
       "shadow-lg flex flex-col transition-all duration-300 ease-in-out",
-      canInteractWithCard ? "ring-2 ring-primary border-primary shadow-primary/30" : "opacity-75 hover:opacity-100",
-      !isCurrentPlayer && "opacity-50 cursor-not-allowed" // If it's not the current player's board essentially
+      isGameEnded ? "opacity-50 cursor-not-allowed" : (canInteractWithCard ? "ring-2 ring-primary border-primary shadow-primary/30" : "opacity-75 hover:opacity-100"),
+      !isCurrentPlayerTurn && !isGameEnded && "opacity-60"
     )}>
       <CardHeader className="pb-3">
         <div className="relative w-full h-40 rounded-t-md overflow-hidden mb-3">
@@ -122,14 +120,14 @@ export default function InvestmentCard({ investment, onInvest, isCurrentPlayer, 
           onClick={handleAnalyzeNpv} 
           variant="outline" 
           className="w-full sm:w-auto" 
-          disabled={!canInteractWithCard}
+          disabled={!canInteractWithCard || isGameEnded}
         >
           Analyze NPV
         </Button>
         <Button 
           onClick={handleInvest} 
           className="w-full sm:w-auto bg-primary hover:bg-primary/90"
-          disabled={!canInteractWithCard || !showNpv}
+          disabled={!canInteractWithCard || !showNpv || isGameEnded}
         >
           Invest
         </Button>

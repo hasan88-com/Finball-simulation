@@ -1,3 +1,4 @@
+
 export interface Player {
   id: string;
   name: string;
@@ -6,6 +7,7 @@ export interface Player {
   netWorth: number;
   avatarUrl: string;
   avatarHint: string;
+  cumulativeNpvEarned: number;
 }
 
 export interface InvestmentOption {
