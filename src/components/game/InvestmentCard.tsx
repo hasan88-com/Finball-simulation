@@ -1,13 +1,13 @@
 
 "use client";
 
-import type { InvestmentOption, Player } from '@/types';
+import type { InvestmentOption } from '@/types';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { calculateNPV, formatCurrency } from '@/lib/game-utils';
-import { Banknote, Briefcase, CalendarDays, BarChartBig, Percent, TrendingUp, TrendingDown, Users } from 'lucide-react';
+import { Banknote, Briefcase, CalendarDays, BarChartBig, Percent, TrendingUp, TrendingDown } from 'lucide-react'; // Removed Users
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -19,7 +19,7 @@ interface InvestmentCardProps {
   isGameEnded: boolean;
   isTradeOffActive: boolean;
   isBeingTraded?: boolean;
-  investingPlayerId: string; // ID of the player who can currently invest (current player or trade winner)
+  investingPlayerId?: string; 
 }
 
 export default function InvestmentCard({ 
@@ -35,24 +35,21 @@ export default function InvestmentCard({
   const [calculatedNpv, setCalculatedNpv] = useState<number | null>(null);
   const [showNpv, setShowNpv] = useState(false);
   const { toast } = useToast();
-
-  // Card can be interacted with if it's the designated player's turn, the project is selected by dice, 
-  // the game is not ended, and a trade-off is NOT active for THIS card (unless current player is the trade winner)
-  const canInteractWithCard = isCurrentPlayerTurn && isSelectedByDice && !isGameEnded && !isTradeOffActive;
-  const canInvestAfterTrade = isCurrentPlayerTurn && isSelectedByDice && !isGameEnded && investingPlayerId && !isTradeOffActive;
+  
+  const effectiveCanInteract = (isCurrentPlayerTurn && isSelectedByDice && !isGameEnded && !isTradeOffActive && !isBeingTraded) || 
+                               (isCurrentPlayerTurn && isSelectedByDice && !isGameEnded && !!investingPlayerId && !isTradeOffActive && !isBeingTraded);
 
 
   useEffect(() => {
-    // Reset NPV display if interaction conditions change unfavorably or game ends
-    if ((!isSelectedByDice || isGameEnded || isTradeOffActive) && !canInvestAfterTrade) {
+    if (!isSelectedByDice || isGameEnded || (isTradeOffActive && !isBeingTraded) || !isCurrentPlayerTurn) {
       setShowNpv(false);
       setCalculatedNpv(null);
     }
-  }, [isSelectedByDice, isGameEnded, isTradeOffActive, canInvestAfterTrade]);
+  }, [isSelectedByDice, isGameEnded, isTradeOffActive, isBeingTraded, isCurrentPlayerTurn, investingPlayerId]);
 
 
   const handleAnalyzeNpv = () => {
-    if (!canInteractWithCard && !canInvestAfterTrade) return;
+    if (!effectiveCanInteract) return;
 
     const npv = calculateNPV(
       investment.expectedAnnualCashFlow,
@@ -69,7 +66,7 @@ export default function InvestmentCard({
   };
 
   const handleInvest = () => {
-    if (!canInteractWithCard && !canInvestAfterTrade) return;
+    if (!effectiveCanInteract) return;
 
     if (calculatedNpv === null) {
       toast({
@@ -91,15 +88,13 @@ export default function InvestmentCard({
     </div>
   ) : null;
   
-  const effectiveCanInteract = (canInteractWithCard || canInvestAfterTrade) && !isBeingTraded;
-
 
   return (
     <Card className={cn(
       "shadow-lg flex flex-col transition-all duration-300 ease-in-out",
       isGameEnded ? "opacity-50 cursor-not-allowed" : 
         (effectiveCanInteract ? "ring-2 ring-primary border-primary shadow-primary/30" : "opacity-75 hover:opacity-100"),
-      (!isCurrentPlayerTurn || isTradeOffActive) && !isGameEnded && !effectiveCanInteract && "opacity-60",
+      (!isCurrentPlayerTurn || (isTradeOffActive && !isBeingTraded)) && !isGameEnded && !effectiveCanInteract && "opacity-60",
       isBeingTraded && "ring-2 ring-accent border-accent shadow-accent/30 opacity-90"
     )}>
       <CardHeader className="pb-3">
@@ -107,8 +102,9 @@ export default function InvestmentCard({
           <Image 
             src={investment.imageUrl} 
             alt={investment.name} 
-            layout="fill" 
-            objectFit="cover"
+            width={600}
+            height={400}
+            className="object-cover"
             data-ai-hint={investment.imageHint}
           />
         </div>
@@ -157,4 +153,3 @@ export default function InvestmentCard({
     </Card>
   );
 }
-

@@ -2,21 +2,26 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import type { Player, InvestmentOption, MarketEvent as MarketEventType, MarketEventImpact } from '@/types';
+import type { Player, InvestmentOption, MarketEvent as MarketEventType } from '@/types';
 import PlayerPanel from '@/components/game/PlayerPanel';
 import InvestmentCard from '@/components/game/InvestmentCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Megaphone, Trophy, ShieldQuestion, ShieldCheck, Briefcase, Dice5, UserCircle, SkipForward, Repeat, Award, Gavel, Handshake, Banknote, Landmark } from 'lucide-react';
+import { Zap, Megaphone, Trophy, ShieldQuestion, ShieldCheck, Briefcase, Dice5, UserCircle, SkipForward, Repeat, Award, Gavel, Handshake, Banknote, Landmark, Play, Users } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatCurrency } from '@/lib/game-utils';
 
-const initialPlayerState = (): Player[] => [
-  { id: 'player1', name: 'Alex Manager', clubName: 'Quantum FC', cash: 1000000, netWorth: 1500000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'male manager', cumulativeNpvEarned: 0 },
-  { id: 'player2', name: 'Beatriz Investor', clubName: 'Momentum United', cash: 1000000, netWorth: 1500000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'female investor', cumulativeNpvEarned: 0 },
-  { id: 'player3', name: 'Carlos Strategist', clubName: 'Dynamo Capital', cash: 1000000, netWorth: 1500000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'male strategist', cumulativeNpvEarned: 0 },
+type GameStage = 'welcome' | 'playerSetup' | 'playing';
+
+const initialPlayerSetupNames = ['Alex Manager', 'Beatriz Investor', 'Carlos Strategist'];
+
+const initialPlayerState = (playerNames: string[]): Player[] => [
+  { id: 'player1', name: playerNames[0] || 'Player 1', clubName: `${playerNames[0] || 'Player 1'}'s XI`, cash: 1000000, netWorth: 1500000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'male manager', cumulativeNpvEarned: 0 },
+  { id: 'player2', name: playerNames[1] || 'Player 2', clubName: `${playerNames[1] || 'Player 2'}'s XI`, cash: 1000000, netWorth: 1500000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'female investor', cumulativeNpvEarned: 0 },
+  { id: 'player3', name: playerNames[2] || 'Player 3', clubName: `${playerNames[2] || 'Player 3'}'s XI`, cash: 1000000, netWorth: 1500000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'male strategist', cumulativeNpvEarned: 0 },
 ];
 
 const COMMON_DISCOUNT_RATE = 0.10;
@@ -30,14 +35,16 @@ const initialInvestments: InvestmentOption[] = [
   { id: 'inv4', name: 'Scouting Network Expansion', description: 'Discover hidden talents.', cost: 340000, expectedAnnualCashFlow: 90000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global scouts' }, // NPV ~+98k
   { id: 'inv5', name: 'Community Outreach Program', description: 'Enhance brand image.', cost: 145395, expectedAnnualCashFlow: 35000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'community sports' }, // NPV ~+25k
   { id: 'inv6', name: 'Player Fitness Center', description: 'Optimize performance.', cost: 628947, expectedAnnualCashFlow: 160000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports science' }, // NPV ~+150k
-  { id: 'inv7', name: 'International Pre-Season Tour', description: 'Expand global brand.', cost: 502895, expectedAnnualCashFlow: 130000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global tour' }, // NPV ~+130k
-  { id: 'inv8', name: 'E-sports Team Launch', description: 'Tap into e-sports market.', cost: 212763, expectedAnnualCashFlow: 55000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'esports team' }, // NPV ~+55k
-  { id: 'inv9', name: 'Sustainable Energy Initiative', description: 'Reduce stadium op costs.', cost: 314474, expectedAnnualCashFlow: 80000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'solar stadium' }, // NPV ~+75k
   
-  // Negative NPV (aiming for -2k to -10k range)
-  { id: 'inv10', name: 'Merchandise Line Overhaul', description: 'Refresh club shop (risky).', cost: 199737, expectedAnnualCashFlow: 40000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports merchandise' }, // NPV ~-5k
-  { id: 'inv11', name: 'Hospitality Suite Renovation', description: 'Premium suites (high cost).', cost: 399474, expectedAnnualCashFlow: 80000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'luxury suite' }, // NPV ~-10k
-  { id: 'inv12', name: 'Club Museum (Low Footfall)', description: 'New revenue stream (niche).', cost: 737105, expectedAnnualCashFlow: 150000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'club museum' }, // NPV ~-7k
+  // New Positive NPV Projects (to make it 9 positive)
+  { id: 'inv7', name: 'International Pre-Season Tour', description: 'Expand global brand presence and merchandise sales.', cost: 502895, expectedAnnualCashFlow: 130000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global tour' }, // NPV ~+130k
+  { id: 'inv8', name: 'E-sports Team Launch', description: 'Tap into the rapidly growing e-sports market.', cost: 212763, expectedAnnualCashFlow: 55000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'esports team' }, // NPV ~+55k
+  { id: 'inv9', name: 'Sustainable Energy Initiative for Stadium', description: 'Reduce operational costs with green energy.', cost: 314474, expectedAnnualCashFlow: 80000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'solar stadium' }, // NPV ~+75k
+
+  // Negative NPV Projects (3 projects, NPV between -2k and -10k)
+  { id: 'inv10', name: 'Merchandise Line Overhaul (Risky)', description: 'Complete refresh of club shop items, high uncertainty.', cost: 199737, expectedAnnualCashFlow: 40000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports merchandise' }, // Target NPV ~-5k (Actual NPV: -5000.87)
+  { id: 'inv11', name: 'Luxury Hospitality Suite Renovation (High Cost)', description: 'Renovate VIP suites, uncertain demand at new price point.', cost: 399474, expectedAnnualCashFlow: 80000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'luxury suite' }, // Target NPV ~-10k (Actual NPV: -10001.73)
+  { id: 'inv12', name: 'Club Museum (Low Expected Footfall)', description: 'Establish a club museum, niche appeal, potentially low visitor numbers.', cost: 737105, expectedAnnualCashFlow: 150000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'club museum' }, // Target NPV ~-7k (Actual NPV: -7001.21)
 ];
 
 
@@ -98,14 +105,11 @@ interface CurrentEventDisplay {
   variant: 'default' | 'destructive';
 }
 
-interface Bid {
-  playerId: string;
-  amount: number;
-}
+export default function FinballGamePage() {
+  const [gameStage, setGameStage] = useState<GameStage>('welcome');
+  const [playerSetupNames, setPlayerSetupNames] = useState<string[]>(initialPlayerSetupNames);
 
-
-export default function GamePage() {
-  const [players, setPlayers] = useState<Player[]>(initialPlayerState());
+  const [players, setPlayers] = useState<Player[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [investments, setInvestments] = useState<InvestmentOption[]>(initialInvestments);
   const [currentEventForDisplay, setCurrentEventForDisplay] = useState<CurrentEventDisplay | null>(null);
@@ -130,13 +134,45 @@ export default function GamePage() {
   const [tradeMessage, setTradeMessage] = useState<string | null>(null);
   const [tradeWinnerId, setTradeWinnerId] = useState<string | null>(null);
 
-
   useEffect(() => {
     setClientHasMounted(true);
   }, []);
 
+  const handlePlayerNameChange = (index: number, name: string) => {
+    const newNames = [...playerSetupNames];
+    newNames[index] = name;
+    setPlayerSetupNames(newNames);
+  };
+
+  const startGame = () => {
+    setPlayers(initialPlayerState(playerSetupNames));
+    setCurrentEventForDisplay(null);
+    setDiceResult(null);
+    setCurrentPlayerIndex(0);
+    setCurrentRound(1);
+    setGameEnded(false);
+    setWinner(null);
+    setShockAvailableThisRound(true);
+    setBankTotalAssets(0);
+    setHasRolledSixOnce(false);
+    setIsSecondRoll(false);
+    setTradeOffActive(false);
+    setProjectForTrade(null);
+    setBids({});
+    setTradeMessage(null);
+    setTradeWinnerId(null);
+    setGameStage('playing');
+    toast({
+      title: "Game Started!",
+      description: `Welcome, Managers! Round 1 begins with ${playerSetupNames[0]}.`,
+    });
+  };
+
   const resetGame = () => {
-    setPlayers(initialPlayerState());
+    setPlayerSetupNames(initialPlayerSetupNames); // Reset names for next setup
+    setGameStage('welcome');
+    // Reset all other game-specific states to ensure a clean slate for `startGame`
+    setPlayers([]);
     setCurrentEventForDisplay(null);
     setDiceResult(null);
     setCurrentPlayerIndex(0);
@@ -154,15 +190,13 @@ export default function GamePage() {
     setTradeWinnerId(null);
     toast({
       title: "Game Reset",
-      description: "A new game has started!",
+      description: "Welcome back to Finball!",
     });
   };
 
 
   const handleInvestment = (investment: InvestmentOption, npv: number) => {
     if (gameEnded) return;
-
-    // Determine who is investing: current player or trade winner
     const investingPlayerId = tradeWinnerId || players[currentPlayerIndex].id;
 
     setPlayers(prevPlayers => {
@@ -192,10 +226,9 @@ export default function GamePage() {
       });
       return updatedPlayers;
     });
-    // Reset trade winner after investment
     if (tradeWinnerId) {
         setTradeWinnerId(null);
-        setDiceResult(null); // Reset dice result as project was handled
+        setDiceResult(null); 
         setProjectForTrade(null);
     }
   };
@@ -220,7 +253,6 @@ export default function GamePage() {
     }
     actualCashChange = Math.round(actualCashChange);
     actualNetWorthChange = Math.round(actualNetWorthChange);
-
 
     setPlayers(prevPlayers => 
       prevPlayers.map((p, index) => {
@@ -260,16 +292,16 @@ export default function GamePage() {
     const roll = Math.floor(Math.random() * 6) + 1;
     const currentPlayerName = players[currentPlayerIndex].name;
 
-    if (isSecondRoll) { // This is the second roll after a 6
+    if (isSecondRoll) { 
       setIsSecondRoll(false);
-      setHasRolledSixOnce(false); // Reset for next turn
+      setHasRolledSixOnce(false); 
       if (roll === 6) {
         toast({
           title: `${currentPlayerName} Rolled Again!`,
           description: `Rolled a 6, then another 6! Unlucky, no project action this turn.`,
           variant: 'destructive'
         });
-        setDiceResult(null); // No project selected
+        setDiceResult(null); 
       } else {
         setDiceResult(roll);
         const projectToTrade = investments[roll - 1];
@@ -281,7 +313,7 @@ export default function GamePage() {
         });
         setTradeMessage(`You can offer "${projectToTrade.name}" for trade. Other players can bid.`);
       }
-    } else { // This is the first roll
+    } else { 
       if (roll === 6) {
         setHasRolledSixOnce(true);
         setIsSecondRoll(true);
@@ -289,7 +321,6 @@ export default function GamePage() {
           title: `${currentPlayerName} Rolled a 6!`,
           description: `You get to roll again!`,
         });
-        // Dice button remains active for the second roll
       } else {
         setDiceResult(roll);
         toast({
@@ -303,7 +334,6 @@ export default function GamePage() {
   const handleInitiateTrade = () => {
     if (!projectForTrade || !tradeOffActive) return;
     setTradeMessage(`Bidding is open for ${projectForTrade.name}! Cost: ${formatCurrency(projectForTrade.cost)}. ${players[currentPlayerIndex].name} is selling.`);
-    // Reset bids for new trade
     setBids(players.reduce((acc, p) => {
         if (p.id !== players[currentPlayerIndex].id) {
             acc[p.id] = 0;
@@ -332,7 +362,6 @@ export default function GamePage() {
         highestBidAmount = bids[playerId];
         winningBidderId = playerId;
       } else if (bids[playerId] === highestBidAmount && bids[playerId] > 0) {
-        // Simplistic tie-breaking: first player in list (excluding seller)
         const potentialWinner = players.find(p => p.id === playerId);
         const currentWinner = players.find(p => p.id === winningBidderId);
         if (potentialWinner && currentWinner && players.indexOf(potentialWinner) < players.indexOf(currentWinner)) {
@@ -347,32 +376,29 @@ export default function GamePage() {
 
     if (winningBidderId && highestBidAmount > 0) {
       const sellerReceives = Math.round(highestBidAmount * 0.8);
-      const bankReceives = highestBidAmount - sellerReceives; // 20%
+      const bankReceives = highestBidAmount - sellerReceives; 
 
       setPlayers(prevPlayers => prevPlayers.map(p => {
         if (p.id === sellerId) {
           return { ...p, cash: p.cash + sellerReceives };
         }
         if (p.id === winningBidderId) {
-          // Check if bidder has enough cash for the bid
           if (p.cash < highestBidAmount) {
             toast({
               title: "Bid Failed",
               description: `${p.name} does not have enough cash (${formatCurrency(highestBidAmount)}) for their bid. Trade cancelled.`,
               variant: "destructive"
             });
-            // Invalidate this win
             winningBidderId = null; 
             highestBidAmount = 0;
-            return p; // No change if bid fails
+            return p; 
           }
           return { ...p, cash: p.cash - highestBidAmount };
         }
         return p;
       }));
       
-      // Check if winningBidderId became null due to insufficient funds
-      if (!winningBidderId) {
+      if (!winningBidderId) { // Check if winner was nullified due to insufficient funds
            setTradeOffActive(false);
            setProjectForTrade(null);
            setDiceResult(null);
@@ -389,13 +415,12 @@ export default function GamePage() {
         duration: 9000
       });
       setTradeWinnerId(winningBidderId);
-      // diceResult remains, now it's for the tradeWinnerId
     } else {
       toast({
         title: "Trade Cancelled",
         description: `No valid bids were placed for ${projectForTrade.name}.`,
       });
-      setDiceResult(null); // No project if trade fails
+      setDiceResult(null); 
       setProjectForTrade(null);
     }
 
@@ -415,11 +440,6 @@ export default function GamePage() {
     });
     const gameWinner = sortedPlayers[0];
     setWinner(gameWinner);
-    toast({
-      title: "🏆 Game Over! 🏆",
-      description: `${gameWinner.name} wins with a cumulative NPV of ${formatCurrency(gameWinner.cumulativeNpvEarned)} and Net Worth of ${formatCurrency(gameWinner.netWorth)}! (Round ${currentRound-1} = Year ${currentRound-1})`,
-      duration: 10000,
-    });
   };
 
   const handleNextPlayer = () => {
@@ -435,7 +455,6 @@ export default function GamePage() {
     }
     
     let nextPlayer = (currentPlayerIndex + 1);
-    // Reset states for the new player
     setDiceResult(null); 
     setHasRolledSixOnce(false);
     setIsSecondRoll(false);
@@ -445,8 +464,7 @@ export default function GamePage() {
     setTradeMessage(null);
     setTradeWinnerId(null);
 
-
-    if (nextPlayer >= players.length) { // End of a round
+    if (nextPlayer >= players.length) { 
       nextPlayer = 0;
       const nextRound = currentRound + 1;
       
@@ -470,12 +488,83 @@ export default function GamePage() {
     setCurrentPlayerIndex(nextPlayer);
   };
   
+  if (gameStage === 'welcome') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-8">
+        <Card className="w-full max-w-md shadow-2xl">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+                <Trophy className="h-24 w-24 text-primary" />
+            </div>
+            <CardTitle className="text-4xl font-bold text-primary">Welcome to Finball!</CardTitle>
+            <CardDescription className="text-lg text-muted-foreground pt-2">
+              The Ultimate Football Club Investment Simulation Game.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="mb-6">
+              Manage your club, make smart investments using NPV, and navigate market shocks to lead your team to financial glory!
+            </p>
+            <Button size="lg" onClick={() => setGameStage('playerSetup')} className="w-full">
+              <Play className="mr-2 h-5 w-5" /> Play Game
+            </Button>
+          </CardContent>
+        </Card>
+         <footer className="absolute bottom-4 text-sm text-muted-foreground">
+            © {new Date().getFullYear()} Finball Inc. All rights reserved.
+        </footer>
+      </div>
+    );
+  }
+
+  if (gameStage === 'playerSetup') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-8">
+        <Card className="w-full max-w-lg shadow-2xl">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+                <Users className="h-20 w-20 text-primary" />
+            </div>
+            <CardTitle className="text-3xl font-bold text-primary">Setup Your Managers</CardTitle>
+            <CardDescription className="text-md text-muted-foreground pt-2">
+              Enter the names for the three competing club managers.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {playerSetupNames.map((name, index) => (
+              <div key={index} className="space-y-1">
+                <Label htmlFor={`player${index + 1}-name`} className="text-sm font-medium">
+                  Manager {index + 1} Name:
+                </Label>
+                <Input
+                  id={`player${index + 1}-name`}
+                  type="text"
+                  value={name}
+                  onChange={(e) => handlePlayerNameChange(index, e.target.value)}
+                  placeholder={`Enter name for Manager ${index + 1}`}
+                  className="text-base"
+                />
+              </div>
+            ))}
+            <Button size="lg" onClick={startGame} className="w-full mt-4">
+              Start Game
+            </Button>
+          </CardContent>
+        </Card>
+         <footer className="absolute bottom-4 text-sm text-muted-foreground">
+            © {new Date().getFullYear()} Finball Inc. All rights reserved.
+        </footer>
+      </div>
+    );
+  }
+
+  // gameStage === 'playing'
   const currentPlayer = players[currentPlayerIndex];
   const otherPlayers = players.filter((_, index) => index !== currentPlayerIndex);
 
-
   const canRollDice = clientHasMounted && !gameEnded && (diceResult === null || isSecondRoll) && !tradeOffActive && !tradeWinnerId;
   const canProceedToNextPlayer = clientHasMounted && !gameEnded && (diceResult !== null || hasRolledSixOnce === false && isSecondRoll === false) && !tradeOffActive && !isSecondRoll;
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -528,16 +617,26 @@ export default function GamePage() {
 
       <main className="flex-grow container mx-auto p-4 md:p-6">
         {gameEnded && winner && clientHasMounted && (
-          <Alert variant="default" className="mb-6 border-primary bg-primary/10">
-            <Award className="h-5 w-5 text-primary" />
-            <AlertTitle className="text-2xl text-primary">Game Over! Congratulations, {winner.name}!</AlertTitle>
-            <AlertDescription className="text-lg">
-              {winner.name} is the Champion Investor with a Cumulative NPV of <strong className="text-primary">{formatCurrency(winner.cumulativeNpvEarned)}</strong> and a final Net Worth of <strong className="text-primary">{formatCurrency(winner.netWorth)}</strong>.
-            </AlertDescription>
-          </Alert>
+          <Card className="mb-6 border-2 border-primary bg-primary/10 shadow-xl">
+            <CardHeader className="items-center text-center">
+                <Award className="h-20 w-20 text-primary animate-pulse" />
+                <CardTitle className="text-3xl font-bold text-primary">Game Over!</CardTitle>
+                <CardDescription className="text-xl text-primary-foreground/90">
+                    Congratulations, {winner.name}!
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center text-lg">
+              <p>
+                {winner.name} is the Champion Investor with a Cumulative NPV of <strong className="text-primary">{formatCurrency(winner.cumulativeNpvEarned)}</strong> and a final Net Worth of <strong className="text-primary">{formatCurrency(winner.netWorth)}</strong>.
+              </p>
+              <Button onClick={resetGame} className="mt-6" size="lg">
+                <Repeat className="mr-2 h-5 w-5" /> Play Again
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
-        {tradeOffActive && projectForTrade && clientHasMounted && !gameEnded && (
+        {!gameEnded && tradeOffActive && projectForTrade && clientHasMounted && (
           <Card className="mb-6 shadow-lg border-accent">
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2 text-accent">
@@ -576,105 +675,100 @@ export default function GamePage() {
         )}
 
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 flex flex-col gap-6">
-            {players.map(player => (
-              <PlayerPanel key={player.id} player={player} />
-            ))}
+        {!gameEnded && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1 flex flex-col gap-6">
+              {players.map(player => (
+                <PlayerPanel key={player.id} player={player} />
+              ))}
+            </div>
+
+            <div className="lg:col-span-2 flex flex-col gap-6">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    <Briefcase className="h-7 w-7 text-accent" />
+                    Investment Opportunities {clientHasMounted && currentPlayer && !gameEnded ? 
+                      (tradeWinnerId ? `(for ${players.find(p=>p.id === tradeWinnerId)?.name} - Traded Project)` : `(for ${currentPlayer.name})`) 
+                      : ''}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {investments.map((inv, idx) => {
+                    const projectIndexMatchesDice = diceResult !== null && idx === diceResult - 1;
+                    let isEffectivelySelectedByDice = false;
+                    let interactionPlayerId = currentPlayer?.id; 
+
+                    if(tradeWinnerId && projectIndexMatchesDice && projectForTrade?.id === inv.id) {
+                      isEffectivelySelectedByDice = true;
+                      interactionPlayerId = tradeWinnerId;
+                    } else if (!tradeWinnerId && !tradeOffActive && projectIndexMatchesDice) {
+                       isEffectivelySelectedByDice = true;
+                       interactionPlayerId = currentPlayer?.id;
+                    }
+
+                    return (
+                      <InvestmentCard 
+                        key={inv.id} 
+                        investment={inv} 
+                        onInvest={(investment, npv) => handleInvestment(investment, npv)} 
+                        isCurrentPlayerTurn={!gameEnded && !!currentPlayer && (currentPlayer.id === interactionPlayerId || tradeWinnerId === interactionPlayerId)}
+                        isSelectedByDice={isEffectivelySelectedByDice && !gameEnded && !tradeOffActive}
+                        isGameEnded={gameEnded}
+                        isTradeOffActive={tradeOffActive}
+                        isBeingTraded={tradeOffActive && projectForTrade?.id === inv.id}
+                        investingPlayerId={tradeWinnerId || currentPlayer?.id}
+                      />
+                    );
+                  })}
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    <Megaphone className="h-7 w-7 text-accent" />
+                    Market Pulse
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {!currentEventForDisplay && clientHasMounted && !gameEnded && (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <ShieldQuestion className="h-12 w-12 mx-auto mb-2" />
+                      <p>No major market events currently. Stay vigilant!</p>
+                      <Button 
+                        onClick={triggerRandomMarketEvent} 
+                        className="mt-4" 
+                        disabled={!clientHasMounted || gameEnded || !shockAvailableThisRound}
+                      >
+                        Trigger Market Event
+                      </Button>
+                    </div>
+                  )}
+                  {currentEventForDisplay && clientHasMounted && !gameEnded && (
+                    <div className={`mt-4 p-4 rounded-md shadow ${currentEventForDisplay.variant === 'destructive' ? 'bg-destructive/20 border-destructive border' : 'bg-secondary/70'}`}>
+                      <h4 className={`font-semibold text-lg ${currentEventForDisplay.variant === 'destructive' ? 'text-destructive-foreground' : 'text-primary'}`}>{currentEventForDisplay.title}</h4>
+                      <p className="text-sm mt-1">{currentEventForDisplay.description}</p>
+                      <p className="text-sm mt-2 font-medium">{currentEventForDisplay.impactMessage}</p>
+                    </div>
+                  )}
+                   {gameEnded && clientHasMounted && !winner && ( 
+                    <div className="text-center py-6 text-muted-foreground">
+                      <ShieldCheck className="h-12 w-12 mx-auto mb-2 text-primary" />
+                      <p>The game has concluded. Calculating final scores...</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
-
-          <div className="lg:col-span-2 flex flex-col gap-6">
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  <Briefcase className="h-7 w-7 text-accent" />
-                  Investment Opportunities {clientHasMounted && currentPlayer && !gameEnded ? 
-                    (tradeWinnerId ? `(for ${players.find(p=>p.id === tradeWinnerId)?.name} - Traded Project)` : `(for ${currentPlayer.name})`) 
-                    : ''}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {investments.map((inv, idx) => {
-                  const projectIndexMatchesDice = diceResult !== null && idx === diceResult - 1;
-                  // Player can interact if it's their turn AND project matches dice OR if they won the bid for this project
-                  const canInteractDirectly = !tradeWinnerId && currentPlayerIndex === players.findIndex(p=>p.id === currentPlayer.id) && projectIndexMatchesDice;
-                  const canInteractAsTradeWinner = !!tradeWinnerId && tradeWinnerId === currentPlayer.id && projectIndexMatchesDice && projectForTrade?.id === inv.id;
-                  const canInteractAsOriginalPlayerPostTradeFailure = !tradeWinnerId && !tradeOffActive && projectForTrade === null && currentPlayerIndex === players.findIndex(p=>p.id === currentPlayer.id) && projectIndexMatchesDice;
-
-
-                  let isEffectivelySelectedByDice = false;
-                  let interactionPlayerId = currentPlayer.id;
-
-                  if(tradeWinnerId && projectIndexMatchesDice && projectForTrade?.id === inv.id) {
-                    isEffectivelySelectedByDice = true;
-                    interactionPlayerId = tradeWinnerId;
-                  } else if (!tradeWinnerId && !tradeOffActive && projectIndexMatchesDice) {
-                     isEffectivelySelectedByDice = true;
-                     interactionPlayerId = currentPlayer.id;
-                  }
-
-
-                  return (
-                    <InvestmentCard 
-                      key={inv.id} 
-                      investment={inv} 
-                      onInvest={(investment, npv) => handleInvestment(investment, npv)} 
-                      isCurrentPlayerTurn={!gameEnded && (players[currentPlayerIndex].id === interactionPlayerId || tradeWinnerId === interactionPlayerId)}
-                      isSelectedByDice={isEffectivelySelectedByDice && !gameEnded && !tradeOffActive}
-                      isGameEnded={gameEnded}
-                      isTradeOffActive={tradeOffActive}
-                      isBeingTraded={tradeOffActive && projectForTrade?.id === inv.id}
-                      investingPlayerId={tradeWinnerId || currentPlayer.id}
-                    />
-                  );
-                })}
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  <Megaphone className="h-7 w-7 text-accent" />
-                  Market Pulse
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {!currentEventForDisplay && clientHasMounted && !gameEnded && (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <ShieldQuestion className="h-12 w-12 mx-auto mb-2" />
-                    <p>No major market events currently. Stay vigilant!</p>
-                    <Button 
-                      onClick={triggerRandomMarketEvent} 
-                      className="mt-4" 
-                      disabled={!clientHasMounted || gameEnded || !shockAvailableThisRound}
-                    >
-                      Trigger Market Event
-                    </Button>
-                  </div>
-                )}
-                {currentEventForDisplay && clientHasMounted && !gameEnded && (
-                  <div className={`mt-4 p-4 rounded-md shadow ${currentEventForDisplay.variant === 'destructive' ? 'bg-destructive/20 border-destructive border' : 'bg-secondary/70'}`}>
-                    <h4 className={`font-semibold text-lg ${currentEventForDisplay.variant === 'destructive' ? 'text-destructive-foreground' : 'text-primary'}`}>{currentEventForDisplay.title}</h4>
-                    <p className="text-sm mt-1">{currentEventForDisplay.description}</p>
-                    <p className="text-sm mt-2 font-medium">{currentEventForDisplay.impactMessage}</p>
-                  </div>
-                )}
-                 {gameEnded && clientHasMounted && (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <ShieldCheck className="h-12 w-12 mx-auto mb-2 text-primary" />
-                    <p>The game has concluded. Click "Play Again" to start a new match!</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        )}
       </main>
 
       <footer className="p-4 bg-card text-center text-sm text-muted-foreground border-t border-border">
-        © {new Date().getFullYear()} Finball Inc. All rights reserved. (Round {currentRound <= MAX_ROUNDS ? currentRound : MAX_ROUNDS} = Year {currentRound <= MAX_ROUNDS ? currentRound : MAX_ROUNDS})
+        © {new Date().getFullYear()} Finball Inc. All rights reserved. 
+        {gameStage === 'playing' && !gameEnded && ` (Round ${currentRound <= MAX_ROUNDS ? currentRound : MAX_ROUNDS} = Year ${currentRound <= MAX_ROUNDS ? currentRound : MAX_ROUNDS})`}
       </footer>
     </div>
   );
 }
-
