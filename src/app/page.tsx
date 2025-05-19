@@ -507,9 +507,6 @@ export default function FinballGamePage() {
             </Button>
           </CardContent>
         </Card>
-         <footer className="absolute bottom-4 text-sm text-muted-foreground">
-            © 2025 Finball Inc. All rights reserved.
-        </footer>
       </div>
     );
   }
@@ -548,9 +545,6 @@ export default function FinballGamePage() {
             </Button>
           </CardContent>
         </Card>
-         <footer className="absolute bottom-4 text-sm text-muted-foreground">
-            © 2025 Finball Inc. All rights reserved.
-        </footer>
       </div>
     );
   }
