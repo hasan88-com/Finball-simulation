@@ -16,21 +16,22 @@ const initialPlayers: Player[] = [
   { id: 'player3', name: 'Carlos Strategist', clubName: 'Dynamo Capital', cash: 1000000, netWorth: 1500000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'male strategist' },
 ];
 
-const COMMON_DISCOUNT_RATE = 0.10;
+const COMMON_DISCOUNT_RATE = 0.10; // All projects will use this discount rate
+const COMMON_DURATION_YEARS = 7; // All projects will have this duration
 
 const initialInvestments: InvestmentOption[] = [
-  { id: 'inv1', name: 'Youth Academy Upgrade', description: 'Boost talent development for long-term gains.', cost: 500000, expectedAnnualCashFlow: 100000, durationYears: 7, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'football academy' },
-  { id: 'inv2', name: 'Stadium Expansion', description: 'Increase matchday revenue with more seats.', cost: 1200000, expectedAnnualCashFlow: 200000, durationYears: 10, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'stadium crowd' },
-  { id: 'inv3', name: 'Digital Fan Platform', description: 'Monetize global fanbase through new tech.', cost: 300000, expectedAnnualCashFlow: 70000, durationYears: 5, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'digital technology' },
-  { id: 'inv4', name: 'Merchandise Line Overhaul', description: 'Refresh club shop & online store for higher sales.', cost: 200000, expectedAnnualCashFlow: 50000, durationYears: 4, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports merchandise' },
-  { id: 'inv5', name: 'Scouting Network Expansion', description: 'Discover hidden talents globally.', cost: 400000, expectedAnnualCashFlow: 60000, durationYears: 8, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global scouts' },
-  { id: 'inv6', name: 'Community Outreach Program', description: 'Enhance brand image and local support.', cost: 150000, expectedAnnualCashFlow: 25000, durationYears: 7, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'community sports' },
-  { id: 'inv7', name: 'Player Fitness & Science Center', description: 'Optimize player performance and reduce injuries.', cost: 700000, expectedAnnualCashFlow: 150000, durationYears: 10, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports science' },
-  { id: 'inv8', name: 'Hospitality Suite Renovation', description: 'Increase premium revenue on matchdays.', cost: 450000, expectedAnnualCashFlow: 90000, durationYears: 6, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'luxury suite' },
-  { id: 'inv9', name: 'International Pre-Season Tour', description: 'Expand global brand presence and merchandise sales.', cost: 600000, expectedAnnualCashFlow: 130000, durationYears: 5, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global tour' },
-  { id: 'inv10', name: 'E-sports Team Launch', description: 'Tap into the booming e-sports market.', cost: 250000, expectedAnnualCashFlow: 65000, durationYears: 5, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'esports team' },
-  { id: 'inv11', name: 'Club Museum & Fan Experience Center', description: 'Create a new revenue stream from tourism and history.', cost: 800000, expectedAnnualCashFlow: 180000, durationYears: 8, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'club museum' },
-  { id: 'inv12', name: 'Sustainable Energy Initiative for Stadium', description: 'Reduce operational costs and improve green credentials.', cost: 350000, expectedAnnualCashFlow: 75000, durationYears: 7, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'solar stadium' },
+  { id: 'inv1', name: 'Youth Academy Upgrade', description: 'Boost talent development for long-term gains.', cost: 534210, expectedAnnualCashFlow: 120000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'football academy' }, // Target NPV: +50,000
+  { id: 'inv2', name: 'Stadium Expansion', description: 'Increase matchday revenue with more seats.', cost: 1117105, expectedAnnualCashFlow: 250000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'stadium crowd' }, // Target NPV: +100,000
+  { id: 'inv3', name: 'Digital Fan Platform', description: 'Monetize global fanbase through new tech.', cost: 320789, expectedAnnualCashFlow: 70000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'digital technology' }, // Target NPV: +20,000
+  { id: 'inv4', name: 'Merchandise Line Overhaul', description: 'Refresh club shop & online store for higher sales.', cost: 199737, expectedAnnualCashFlow: 40000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports merchandise' }, // Target NPV: -5,000
+  { id: 'inv5', name: 'Scouting Network Expansion', description: 'Discover hidden talents globally.', cost: 408158, expectedAnnualCashFlow: 90000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global scouts' }, // Target NPV: +30,000
+  { id: 'inv6', name: 'Community Outreach Program', description: 'Enhance brand image and local support.', cost: 165395, expectedAnnualCashFlow: 35000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'community sports' }, // Target NPV: +5,000
+  { id: 'inv7', name: 'Player Fitness & Science Center', description: 'Optimize player performance and reduce injuries.', cost: 708947, expectedAnnualCashFlow: 160000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports science' }, // Target NPV: +70,000
+  { id: 'inv8', name: 'Hospitality Suite Renovation', description: 'Increase premium revenue on matchdays.', cost: 399474, expectedAnnualCashFlow: 80000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'luxury suite' }, // Target NPV: -10,000
+  { id: 'inv9', name: 'International Pre-Season Tour', description: 'Expand global brand presence and merchandise sales.', cost: 592895, expectedAnnualCashFlow: 130000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global tour' }, // Target NPV: +40,000
+  { id: 'inv10', name: 'E-sports Team Launch', description: 'Tap into the booming e-sports market.', cost: 252763, expectedAnnualCashFlow: 55000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'esports team' }, // Target NPV: +15,000
+  { id: 'inv11', name: 'Club Museum & Fan Experience Center', description: 'Create a new revenue stream from tourism and history.', cost: 732263, expectedAnnualCashFlow: 150000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'club museum' }, // Target NPV: -2,000
+  { id: 'inv12', name: 'Sustainable Energy Initiative for Stadium', description: 'Reduce operational costs and improve green credentials.', cost: 364474, expectedAnnualCashFlow: 80000, durationYears: COMMON_DURATION_YEARS, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'solar stadium' }, // Target NPV: +25,000
 ];
 
 
@@ -62,7 +63,7 @@ export default function GamePage() {
 
       if (player.cash >= investment.cost) {
         player.cash -= investment.cost;
-        player.netWorth += npv > 0 ? npv : 0;
+        player.netWorth += npv > 0 ? npv : 0; // Only add positive NPV to net worth
         
         toast({
           title: `Investment Successful for ${player.name}!`,
@@ -134,7 +135,7 @@ export default function GamePage() {
                 Rolled: <strong className="text-primary text-lg">{diceResult}</strong>
               </span>
             )}
-            <Button variant="outline" size="sm" onClick={handleDiceRoll} disabled={!clientHasMounted}>
+            <Button variant="outline" size="sm" onClick={handleDiceRoll} disabled={!clientHasMounted || diceResult !== null}>
               <Dice5 className="mr-2 h-4 w-4" /> Roll Dice
             </Button>
              <Button variant="outline" size="sm" onClick={handleNextPlayer} disabled={!clientHasMounted}>
@@ -171,7 +172,7 @@ export default function GamePage() {
                       key={inv.id} 
                       investment={inv} 
                       onInvest={(investment, npv) => handleInvestment(investment, npv)} 
-                      isCurrentPlayer={true} // True because this page is for the current player
+                      isCurrentPlayer={true} 
                       isSelectedByDice={isSelectedByDice}
                     />
                   );
@@ -213,3 +214,5 @@ export default function GamePage() {
     </div>
   );
 }
+
+    
