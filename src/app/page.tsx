@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Megaphone, Trophy, ShieldQuestion, ShieldCheck, Briefcase, Dice5, UserCircle, SkipForward, Repeat, Award, Gavel, Handshake, Banknote } from 'lucide-react';
+import { Zap, Megaphone, Trophy, ShieldQuestion, ShieldCheck, Briefcase, Dice5, UserCircle, SkipForward, Repeat, Award, Gavel, Handshake, Banknote, Landmark } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatCurrency } from '@/lib/game-utils';
 
@@ -117,6 +117,7 @@ export default function GamePage() {
   const [gameEnded, setGameEnded] = useState<boolean>(false);
   const [winner, setWinner] = useState<Player | null>(null);
   const [shockAvailableThisRound, setShockAvailableThisRound] = useState<boolean>(true);
+  const [bankTotalAssets, setBankTotalAssets] = useState<number>(0);
 
   const [clientHasMounted, setClientHasMounted] = useState(false);
 
@@ -143,6 +144,7 @@ export default function GamePage() {
     setGameEnded(false);
     setWinner(null);
     setShockAvailableThisRound(true);
+    setBankTotalAssets(0);
     setHasRolledSixOnce(false);
     setIsSecondRoll(false);
     setTradeOffActive(false);
@@ -345,7 +347,6 @@ export default function GamePage() {
 
     if (winningBidderId && highestBidAmount > 0) {
       const sellerReceives = Math.round(highestBidAmount * 0.8);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const bankReceives = highestBidAmount - sellerReceives; // 20%
 
       setPlayers(prevPlayers => prevPlayers.map(p => {
@@ -379,12 +380,13 @@ export default function GamePage() {
            setBids({});
            return;
       }
-
+      
+      setBankTotalAssets(prevBankAssets => prevBankAssets + bankReceives);
 
       toast({
         title: "Trade Successful!",
-        description: `${players.find(p => p.id === sellerId)?.name} sold the rights for ${projectForTrade.name} to ${players.find(p => p.id === winningBidderId)?.name} for ${formatCurrency(highestBidAmount)}. Seller received ${formatCurrency(sellerReceives)}. ${players.find(p => p.id === winningBidderId)?.name} can now invest.`,
-        duration: 7000
+        description: `${players.find(p => p.id === sellerId)?.name} sold the rights for ${projectForTrade.name} to ${players.find(p => p.id === winningBidderId)?.name} for ${formatCurrency(highestBidAmount)}. Seller received ${formatCurrency(sellerReceives)}. Bank received ${formatCurrency(bankReceives)}. ${players.find(p => p.id === winningBidderId)?.name} can now invest.`,
+        duration: 9000
       });
       setTradeWinnerId(winningBidderId);
       // diceResult remains, now it's for the tradeWinnerId
@@ -493,6 +495,12 @@ export default function GamePage() {
                 <span className="text-foreground text-xs md:text-sm font-medium flex items-center">
                   <UserCircle className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5 text-primary" />
                   Player: <strong className="ml-1 text-primary text-sm md:text-base">{currentPlayer.name}</strong>
+                </span>
+            )}
+             {clientHasMounted && !gameEnded && (
+                <span className="text-foreground text-xs md:text-sm font-medium flex items-center">
+                  <Landmark className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5 text-primary" />
+                  Bank: <strong className="ml-1 text-primary text-sm md:text-base">{formatCurrency(bankTotalAssets)}</strong>
                 </span>
             )}
             {diceResult !== null && clientHasMounted && !gameEnded && !tradeOffActive && (
