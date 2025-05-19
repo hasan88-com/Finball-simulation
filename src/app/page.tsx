@@ -362,63 +362,59 @@ export default function FinballGamePage() {
         highestBidAmount = bids[playerId];
         winningBidderId = playerId;
       } else if (bids[playerId] === highestBidAmount && bids[playerId] > 0) {
+        // Tie-breaking: player earlier in the `players` array wins (excluding current player)
         const potentialWinner = players.find(p => p.id === playerId);
-        const currentWinner = players.find(p => p.id === winningBidderId);
-        if (potentialWinner && currentWinner && players.indexOf(potentialWinner) < players.indexOf(currentWinner)) {
-            winningBidderId = playerId;
-        } else if (!winningBidderId && potentialWinner) {
-            winningBidderId = playerId;
+        const currentWinnerInTie = players.find(p => p.id === winningBidderId);
+         // Ensure potentialWinner is not the seller
+        if (potentialWinner && potentialWinner.id !== players[currentPlayerIndex].id) {
+            if (!currentWinnerInTie || players.indexOf(potentialWinner) < players.indexOf(currentWinnerInTie)) {
+                winningBidderId = playerId;
+            }
         }
       }
     }
     
     const sellerId = players[currentPlayerIndex].id;
+    let tradeSuccessful = false;
 
     if (winningBidderId && highestBidAmount > 0) {
-      const sellerReceives = Math.round(highestBidAmount * 0.8);
-      const bankReceives = highestBidAmount - sellerReceives; 
+      const winningBidder = players.find(p => p.id === winningBidderId);
+      if (winningBidder && winningBidder.cash >= highestBidAmount) {
+        const sellerReceives = Math.round(highestBidAmount * 0.8);
+        const bankReceives = highestBidAmount - sellerReceives; 
 
-      setPlayers(prevPlayers => prevPlayers.map(p => {
-        if (p.id === sellerId) {
-          return { ...p, cash: p.cash + sellerReceives };
-        }
-        if (p.id === winningBidderId) {
-          if (p.cash < highestBidAmount) {
-            toast({
-              title: "Bid Failed",
-              description: `${p.name} does not have enough cash (${formatCurrency(highestBidAmount)}) for their bid. Trade cancelled.`,
-              variant: "destructive"
-            });
-            winningBidderId = null; 
-            highestBidAmount = 0;
-            return p; 
+        setPlayers(prevPlayers => prevPlayers.map(p => {
+          if (p.id === sellerId) {
+            return { ...p, cash: p.cash + sellerReceives };
           }
-          return { ...p, cash: p.cash - highestBidAmount };
-        }
-        return p;
-      }));
-      
-      if (!winningBidderId) { // Check if winner was nullified due to insufficient funds
-           setTradeOffActive(false);
-           setProjectForTrade(null);
-           setDiceResult(null);
-           setTradeMessage("Trade cancelled due to insufficient funds from bidder.");
-           setBids({});
-           return;
-      }
-      
-      setBankTotalAssets(prevBankAssets => prevBankAssets + bankReceives);
+          if (p.id === winningBidderId) { // This check should be safe due to above
+            return { ...p, cash: p.cash - highestBidAmount };
+          }
+          return p;
+        }));
+        
+        setBankTotalAssets(prevBankAssets => prevBankAssets + bankReceives);
+        setTradeWinnerId(winningBidderId); 
+        tradeSuccessful = true;
+        toast({
+          title: "Trade Successful!",
+          description: `${players.find(p => p.id === sellerId)?.name} sold the rights for ${projectForTrade.name} to ${players.find(p => p.id === winningBidderId)?.name} for ${formatCurrency(highestBidAmount)}. Seller received ${formatCurrency(sellerReceives)}. Bank received ${formatCurrency(bankReceives)}. ${players.find(p => p.id === winningBidderId)?.name} can now invest.`,
+          duration: 9000
+        });
 
+      } else { // Winning bidder cannot afford
+         toast({
+            title: "Bid Failed",
+            description: `${winningBidder?.name || 'Bidder'} does not have enough cash (${formatCurrency(highestBidAmount)}) for their bid. Trade cancelled.`,
+            variant: "destructive"
+          });
+      }
+    }
+    
+    if (!tradeSuccessful) { // No valid bids or highest bidder couldn't afford
       toast({
-        title: "Trade Successful!",
-        description: `${players.find(p => p.id === sellerId)?.name} sold the rights for ${projectForTrade.name} to ${players.find(p => p.id === winningBidderId)?.name} for ${formatCurrency(highestBidAmount)}. Seller received ${formatCurrency(sellerReceives)}. Bank received ${formatCurrency(bankReceives)}. ${players.find(p => p.id === winningBidderId)?.name} can now invest.`,
-        duration: 9000
-      });
-      setTradeWinnerId(winningBidderId);
-    } else {
-      toast({
-        title: "Trade Cancelled",
-        description: `No valid bids were placed for ${projectForTrade.name}.`,
+        title: "Trade Unsuccessful",
+        description: `No valid, affordable bids were placed for ${projectForTrade.name}.`,
       });
       setDiceResult(null); 
       setProjectForTrade(null);
@@ -463,6 +459,7 @@ export default function FinballGamePage() {
     setBids({});
     setTradeMessage(null);
     setTradeWinnerId(null);
+    setCurrentEventForDisplay(null); // Clear previous market event display
 
     if (nextPlayer >= players.length) { 
       nextPlayer = 0;
@@ -563,7 +560,7 @@ export default function FinballGamePage() {
   const otherPlayers = players.filter((_, index) => index !== currentPlayerIndex);
 
   const canRollDice = clientHasMounted && !gameEnded && (diceResult === null || isSecondRoll) && !tradeOffActive && !tradeWinnerId;
-  const canProceedToNextPlayer = clientHasMounted && !gameEnded && (diceResult !== null || hasRolledSixOnce === false && isSecondRoll === false) && !tradeOffActive && !isSecondRoll;
+  const canProceedToNextPlayer = clientHasMounted && !gameEnded && (diceResult !== null || hasRolledSixOnce === false && isSecondRoll === false || tradeWinnerId !== null) && !tradeOffActive && !isSecondRoll;
 
 
   return (
@@ -592,7 +589,7 @@ export default function FinballGamePage() {
                   Bank: <strong className="ml-1 text-primary text-sm md:text-base">{formatCurrency(bankTotalAssets)}</strong>
                 </span>
             )}
-            {diceResult !== null && clientHasMounted && !gameEnded && !tradeOffActive && (
+            {diceResult !== null && clientHasMounted && !gameEnded && !tradeOffActive && !tradeWinnerId && (
               <span className="text-foreground text-xs md:text-sm">
                 Rolled: <strong className="text-primary text-base md:text-lg">{diceResult}</strong> (Project {diceResult})
               </span>
@@ -697,27 +694,40 @@ export default function FinballGamePage() {
                   {investments.map((inv, idx) => {
                     const projectIndexMatchesDice = diceResult !== null && idx === diceResult - 1;
                     let isEffectivelySelectedByDice = false;
-                    let interactionPlayerId = currentPlayer?.id; 
-
-                    if(tradeWinnerId && projectIndexMatchesDice && projectForTrade?.id === inv.id) {
-                      isEffectivelySelectedByDice = true;
-                      interactionPlayerId = tradeWinnerId;
-                    } else if (!tradeWinnerId && !tradeOffActive && projectIndexMatchesDice) {
-                       isEffectivelySelectedByDice = true;
-                       interactionPlayerId = currentPlayer?.id;
+                    // Determine who is the current interactor for this card
+                    let currentInteractorId = null;
+                    if (tradeWinnerId && projectForTrade?.id === inv.id) {
+                        currentInteractorId = tradeWinnerId;
+                    } else if (currentPlayer) {
+                        currentInteractorId = currentPlayer.id;
                     }
+                    
+                    // A project is selected by dice if the dice roll matches its index AND (it's not a trade-off OR it is the project being traded AND a winner exists)
+                    if (projectIndexMatchesDice) {
+                        if (tradeOffActive) { // If trade-off is active, only the project being traded can be 'selected' by its dice number for the winner
+                            if (projectForTrade?.id === inv.id && tradeWinnerId) {
+                                isEffectivelySelectedByDice = true;
+                            }
+                        } else if (tradeWinnerId && projectForTrade?.id === inv.id) { // If a trade just concluded for this project
+                           isEffectivelySelectedByDice = true;
+                        }
+                         else if (!tradeOffActive && !tradeWinnerId) { // Standard dice roll, no trade involved
+                            isEffectivelySelectedByDice = true;
+                        }
+                    }
+
 
                     return (
                       <InvestmentCard 
                         key={inv.id} 
                         investment={inv} 
                         onInvest={(investment, npv) => handleInvestment(investment, npv)} 
-                        isCurrentPlayerTurn={!gameEnded && !!currentPlayer && (currentPlayer.id === interactionPlayerId || tradeWinnerId === interactionPlayerId)}
-                        isSelectedByDice={isEffectivelySelectedByDice && !gameEnded && !tradeOffActive}
+                        isCurrentPlayerTurn={!gameEnded && !!currentInteractorId && (tradeWinnerId ? currentInteractorId === tradeWinnerId : currentInteractorId === currentPlayer?.id)}
+                        isSelectedByDice={isEffectivelySelectedByDice && !gameEnded}
                         isGameEnded={gameEnded}
-                        isTradeOffActive={tradeOffActive}
+                        isTradeOffActive={tradeOffActive && projectForTrade?.id === inv.id} // only the project being traded is affected by tradeOffActive UI
                         isBeingTraded={tradeOffActive && projectForTrade?.id === inv.id}
-                        investingPlayerId={tradeWinnerId || currentPlayer?.id}
+                        investingPlayerId={tradeWinnerId || currentPlayer?.id} // Player who is eligible to invest (current or trade winner)
                       />
                     );
                   })}
@@ -733,30 +743,32 @@ export default function FinballGamePage() {
                 </CardHeader>
                 <CardContent>
                   {!currentEventForDisplay && clientHasMounted && !gameEnded && (
-                    <div className="text-center py-6 text-muted-foreground">
-                      <ShieldQuestion className="h-12 w-12 mx-auto mb-2" />
-                      <p>No major market events currently. Stay vigilant!</p>
-                      <Button 
-                        onClick={triggerRandomMarketEvent} 
-                        className="mt-4" 
-                        disabled={!clientHasMounted || gameEnded || !shockAvailableThisRound}
-                      >
-                        Trigger Market Event
-                      </Button>
-                    </div>
+                     <Alert>
+                      <ShieldQuestion className="h-4 w-4" />
+                      <AlertTitle>All Quiet on the Market Front!</AlertTitle>
+                      <AlertDescription>
+                        No major market events currently. Stay vigilant! You can trigger a market shock once per round.
+                      </AlertDescription>
+                    </Alert>
                   )}
                   {currentEventForDisplay && clientHasMounted && !gameEnded && (
-                    <div className={`mt-4 p-4 rounded-md shadow ${currentEventForDisplay.variant === 'destructive' ? 'bg-destructive/20 border-destructive border' : 'bg-secondary/70'}`}>
-                      <h4 className={`font-semibold text-lg ${currentEventForDisplay.variant === 'destructive' ? 'text-destructive-foreground' : 'text-primary'}`}>{currentEventForDisplay.title}</h4>
-                      <p className="text-sm mt-1">{currentEventForDisplay.description}</p>
-                      <p className="text-sm mt-2 font-medium">{currentEventForDisplay.impactMessage}</p>
-                    </div>
+                     <Alert variant={currentEventForDisplay.variant === 'destructive' ? 'destructive' : 'default'}>
+                      {currentEventForDisplay.variant === 'destructive' ? <Zap className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
+                      <AlertTitle>{currentEventForDisplay.title}</AlertTitle>
+                      <AlertDescription>
+                        {currentEventForDisplay.description} <br />
+                        <strong>Impact:</strong> {currentEventForDisplay.impactMessage}
+                      </AlertDescription>
+                    </Alert>
                   )}
                    {gameEnded && clientHasMounted && !winner && ( 
-                    <div className="text-center py-6 text-muted-foreground">
-                      <ShieldCheck className="h-12 w-12 mx-auto mb-2 text-primary" />
-                      <p>The game has concluded. Calculating final scores...</p>
-                    </div>
+                    <Alert>
+                      <ShieldCheck className="h-4 w-4" />
+                      <AlertTitle>Game Concluded</AlertTitle>
+                      <AlertDescription>
+                        The game has finished. Calculating final scores...
+                      </AlertDescription>
+                    </Alert>
                   )}
                 </CardContent>
               </Card>
@@ -772,3 +784,4 @@ export default function FinballGamePage() {
     </div>
   );
 }
+
