@@ -1,25 +1,42 @@
+
 "use client";
 
 import type { InvestmentOption } from '@/types';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+// Input and Label are not used, so they are removed to avoid unused import warnings
+// import { Input } from '@/components/ui/input';
+// import { Label } from '@/components/ui/label';
 import { calculateNPV, formatCurrency } from '@/lib/game-utils';
-import { Banknote, Briefcase, CalendarDays, BarChartBig, Percent, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { Banknote, Briefcase, CalendarDays, BarChartBig, Percent, TrendingUp, TrendingDown } from 'lucide-react'; // AlertTriangle removed as it's not used
 import { useToast } from '@/hooks/use-toast';
 
 interface InvestmentCardProps {
   investment: InvestmentOption;
-  onInvest: (investment: InvestmentOption, npv: number) => void; // Callback when player invests
+  onInvest: (investment: InvestmentOption, npv: number) => void;
+  isCurrentPlayer: boolean; // To enable/disable investment based on turn
 }
 
-export default function InvestmentCard({ investment, onInvest }: InvestmentCardProps) {
+export default function InvestmentCard({ investment, onInvest, isCurrentPlayer }: InvestmentCardProps) {
   const [calculatedNpv, setCalculatedNpv] = useState<number | null>(null);
   const [showNpv, setShowNpv] = useState(false);
   const { toast } = useToast();
+
+  // Recalculate NPV if investment data changes (e.g. discount rate from market event)
+  useEffect(() => {
+    if (showNpv) { // Only recalculate if NPV is already shown, to avoid spamming
+        const npv = calculateNPV(
+            investment.expectedAnnualCashFlow,
+            investment.discountRate,
+            investment.durationYears,
+            investment.cost
+        );
+        setCalculatedNpv(npv);
+    }
+  }, [investment, showNpv]);
+
 
   const handleAnalyzeNpv = () => {
     const npv = calculateNPV(
@@ -46,10 +63,7 @@ export default function InvestmentCard({ investment, onInvest }: InvestmentCardP
       return;
     }
     onInvest(investment, calculatedNpv);
-     toast({
-      title: "Investment Made!",
-      description: `Successfully invested in ${investment.name}.`,
-    });
+    // Don't show success toast here, it's handled in GamePage for player context
     // Reset for next interaction or if it's a one-time purchase visual
     setShowNpv(false); 
     setCalculatedNpv(null);
@@ -100,13 +114,13 @@ export default function InvestmentCard({ investment, onInvest }: InvestmentCardP
         {showNpv && NpvDisplay}
       </CardContent>
       <CardFooter className="flex flex-col sm:flex-row gap-2 pt-4">
-        <Button onClick={handleAnalyzeNpv} variant="outline" className="w-full sm:w-auto">
+        <Button onClick={handleAnalyzeNpv} variant="outline" className="w-full sm:w-auto" disabled={!isCurrentPlayer}>
           Analyze NPV
         </Button>
         <Button 
           onClick={handleInvest} 
           className="w-full sm:w-auto bg-primary hover:bg-primary/90"
-          disabled={!showNpv} // Can only invest after analyzing
+          disabled={!showNpv || !isCurrentPlayer}
         >
           Invest
         </Button>
@@ -114,3 +128,5 @@ export default function InvestmentCard({ investment, onInvest }: InvestmentCardP
     </Card>
   );
 }
+
+    

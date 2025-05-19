@@ -8,20 +8,31 @@ import InvestmentCard from '@/components/game/InvestmentCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Megaphone, Trophy, ShieldQuestion, Briefcase, Dice5 } from 'lucide-react';
+import { Zap, Megaphone, Trophy, ShieldQuestion, Briefcase, Dice5, UserCircle, SkipForward } from 'lucide-react';
 
 const initialPlayers: Player[] = [
-  { id: 'player1', name: 'Alex Manager', clubName: 'Quantum FC', cash: 1500000, netWorth: 2500000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'male manager' },
-  { id: 'player2', name: 'Beatriz Investor', clubName: 'Momentum United', cash: 1200000, netWorth: 2200000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'female investor' },
-  { id: 'player3', name: 'Carlos Strategist', clubName: 'Dynamo Capital', cash: 1800000, netWorth: 2800000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'male strategist' },
+  { id: 'player1', name: 'Alex Manager', clubName: 'Quantum FC', cash: 1000000, netWorth: 1500000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'male manager' },
+  { id: 'player2', name: 'Beatriz Investor', clubName: 'Momentum United', cash: 1000000, netWorth: 1500000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'female investor' },
+  { id: 'player3', name: 'Carlos Strategist', clubName: 'Dynamo Capital', cash: 1000000, netWorth: 1500000, avatarUrl: 'https://placehold.co/128x128.png', avatarHint: 'male strategist' },
 ];
 
+const COMMON_DISCOUNT_RATE = 0.10;
+
 const initialInvestments: InvestmentOption[] = [
-  { id: 'inv1', name: 'Youth Academy Upgrade', description: 'Boost talent development for long-term gains.', cost: 500000, expectedAnnualCashFlow: 100000, durationYears: 7, discountRate: 0.12, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'football academy' },
-  { id: 'inv2', name: 'Stadium Expansion', description: 'Increase matchday revenue with more seats.', cost: 1200000, expectedAnnualCashFlow: 200000, durationYears: 10, discountRate: 0.10, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'stadium crowd' },
-  { id: 'inv3', name: 'Digital Fan Platform', description: 'Monetize global fanbase through new tech.', cost: 300000, expectedAnnualCashFlow: 70000, durationYears: 5, discountRate: 0.15, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'digital technology' },
-  { id: 'inv4', name: 'Merchandise Line Overhaul', description: 'Refresh club shop & online store for higher sales.', cost: 200000, expectedAnnualCashFlow: 50000, durationYears: 4, discountRate: 0.13, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports merchandise' },
+  { id: 'inv1', name: 'Youth Academy Upgrade', description: 'Boost talent development for long-term gains.', cost: 500000, expectedAnnualCashFlow: 100000, durationYears: 7, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'football academy' },
+  { id: 'inv2', name: 'Stadium Expansion', description: 'Increase matchday revenue with more seats.', cost: 1200000, expectedAnnualCashFlow: 200000, durationYears: 10, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'stadium crowd' },
+  { id: 'inv3', name: 'Digital Fan Platform', description: 'Monetize global fanbase through new tech.', cost: 300000, expectedAnnualCashFlow: 70000, durationYears: 5, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'digital technology' },
+  { id: 'inv4', name: 'Merchandise Line Overhaul', description: 'Refresh club shop & online store for higher sales.', cost: 200000, expectedAnnualCashFlow: 50000, durationYears: 4, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports merchandise' },
+  { id: 'inv5', name: 'Scouting Network Expansion', description: 'Discover hidden talents globally.', cost: 400000, expectedAnnualCashFlow: 60000, durationYears: 8, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global scouts' }, // NPV: (60k * 5.3349) - 400k = 320,094 - 400k = -79,906
+  { id: 'inv6', name: 'Community Outreach Program', description: 'Enhance brand image and local support.', cost: 150000, expectedAnnualCashFlow: 25000, durationYears: 7, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'community sports' }, // NPV: (25k * 4.8684) - 150k = 121,710 - 150k = -28,290
+  { id: 'inv7', name: 'Player Fitness & Science Center', description: 'Optimize player performance and reduce injuries.', cost: 700000, expectedAnnualCashFlow: 150000, durationYears: 10, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'sports science' }, // NPV: (150k * 6.1446) - 700k = 921,690 - 700k = 221,690
+  { id: 'inv8', name: 'Hospitality Suite Renovation', description: 'Increase premium revenue on matchdays.', cost: 450000, expectedAnnualCashFlow: 90000, durationYears: 6, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'luxury suite' }, // NPV: (90k * 4.3553) - 450k = 391,977 - 450k = -58,023
+  { id: 'inv9', name: 'International Pre-Season Tour', description: 'Expand global brand presence and merchandise sales.', cost: 600000, expectedAnnualCashFlow: 130000, durationYears: 5, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'global tour' }, // NPV: (130k * 3.7908) - 600k = 492,804 - 600k = -107,196 (Made this one intentionally more negative for variety)
+  { id: 'inv10', name: 'E-sports Team Launch', description: 'Tap into the booming e-sports market.', cost: 250000, expectedAnnualCashFlow: 65000, durationYears: 5, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'esports team' }, // NPV: (65k * 3.7908) - 250k = 246,402 - 250k = -3,598 (Slightly negative)
+  { id: 'inv11', name: 'Club Museum & Fan Experience Center', description: 'Create a new revenue stream from tourism and history.', cost: 800000, expectedAnnualCashFlow: 180000, durationYears: 8, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'club museum' }, // NPV: (180k * 5.3349) - 800k = 960,282 - 800k = 160,282
+  { id: 'inv12', name: 'Sustainable Energy Initiative for Stadium', description: 'Reduce operational costs and improve green credentials.', cost: 350000, expectedAnnualCashFlow: 75000, durationYears: 7, discountRate: COMMON_DISCOUNT_RATE, imageUrl: 'https://placehold.co/600x400.png', imageHint: 'solar stadium' }, // NPV: (75k * 4.8684) - 350k = 365,130 - 350k = 15,130
 ];
+
 
 const sampleMarketEvents: MarketEventType[] = [
   { id: 'event1', title: 'Economic Boom!', description: 'Increased sponsorship revenue for all clubs.', impactDescription: '+10% cash for all players', variant: 'default' },
@@ -36,25 +47,22 @@ export default function GamePage() {
   const [investments, setInvestments] = useState<InvestmentOption[]>(initialInvestments);
   const [currentMarketEvent, setCurrentMarketEvent] = useState<MarketEventType | null>(null);
   const [diceResult, setDiceResult] = useState<number | null>(null);
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState<number>(0);
   const { toast } = useToast();
 
-  // Ensure client-side only state for random generation
   const [clientHasMounted, setClientHasMounted] = useState(false);
   useEffect(() => {
     setClientHasMounted(true);
   }, []);
 
-
-  const handleInvestment = (playerIndex: number, investment: InvestmentOption, npv: number) => {
+  const handleInvestment = (investment: InvestmentOption, npv: number) => {
     setPlayers(prevPlayers => {
       const updatedPlayers = [...prevPlayers];
-      const player = updatedPlayers[playerIndex];
+      const player = updatedPlayers[currentPlayerIndex];
 
       if (player.cash >= investment.cost) {
         player.cash -= investment.cost;
-        // Simplified: Add NPV to net worth for game purposes, or a portion of it representing value creation.
-        // In a real game, this would be more complex (assets increase by cost, future value contributes to net worth).
-        player.netWorth += npv > 0 ? npv : 0; // Only add positive NPV to net worth.
+        player.netWorth += npv > 0 ? npv : 0;
         
         toast({
           title: `Investment Successful for ${player.name}!`,
@@ -72,7 +80,7 @@ export default function GamePage() {
   };
 
   const triggerRandomMarketEvent = () => {
-    if (!clientHasMounted) return; // Prevent server-side random generation
+    if (!clientHasMounted) return;
     const randomIndex = Math.floor(Math.random() * sampleMarketEvents.length);
     const event = sampleMarketEvents[randomIndex];
     setCurrentMarketEvent(event);
@@ -82,19 +90,29 @@ export default function GamePage() {
       variant: event.variant,
       duration: 5000,
     });
-    // Here you would typically apply the event's effects to the game state
   };
 
   const handleDiceRoll = () => {
-    if (!clientHasMounted) return; // Prevent server-side random generation
-    const roll = Math.floor(Math.random() * 6) + 1; // Standard 6-sided die
+    if (!clientHasMounted) return;
+    const roll = Math.floor(Math.random() * 6) + 1;
     setDiceResult(roll);
     toast({
-      title: "Dice Rolled!",
-      description: `You rolled a ${roll}.`,
+      title: `${players[currentPlayerIndex].name} Rolled!`,
+      description: `They rolled a ${roll}.`,
     });
-    // Future: Connect this roll to game logic (e.g., triggering events, player turns)
+    // Future: Connect this roll to game logic
   };
+
+  const handleNextPlayer = () => {
+    setCurrentPlayerIndex((prevIndex) => (prevIndex + 1) % players.length);
+    setDiceResult(null); // Reset dice result for the new player
+     toast({
+      title: "Next Player's Turn",
+      description: `It's now ${players[(currentPlayerIndex + 1) % players.length].name}'s turn.`,
+    });
+  };
+  
+  const currentPlayer = players[currentPlayerIndex];
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -104,16 +122,25 @@ export default function GamePage() {
             <Trophy className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold text-primary">Fintech Football</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            {clientHasMounted && currentPlayer && (
+                <span className="text-foreground text-sm font-medium flex items-center">
+                  <UserCircle className="mr-2 h-5 w-5 text-primary" />
+                  Current Player: <strong className="ml-1 text-primary text-base">{currentPlayer.name}</strong>
+                </span>
+            )}
             {diceResult !== null && clientHasMounted && (
               <span className="text-foreground text-sm">
                 Last Roll: <strong className="text-primary text-lg">{diceResult}</strong>
               </span>
             )}
-            <Button variant="outline" size="sm" onClick={handleDiceRoll}>
+            <Button variant="outline" size="sm" onClick={handleDiceRoll} disabled={!clientHasMounted}>
               <Dice5 className="mr-2 h-4 w-4" /> Roll Dice
             </Button>
-            <Button variant="outline" size="sm" onClick={triggerRandomMarketEvent}>
+             <Button variant="outline" size="sm" onClick={handleNextPlayer} disabled={!clientHasMounted}>
+              <SkipForward className="mr-2 h-4 w-4" /> Next Player
+            </Button>
+            <Button variant="secondary" size="sm" onClick={triggerRandomMarketEvent} disabled={!clientHasMounted}>
               <Zap className="mr-2 h-4 w-4" /> Market Shock
             </Button>
           </div>
@@ -122,27 +149,29 @@ export default function GamePage() {
 
       <main className="flex-grow container mx-auto p-4 md:p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Player Panels Section */}
           <div className="lg:col-span-1 flex flex-col gap-6">
             {players.map(player => (
               <PlayerPanel key={player.id} player={player} />
             ))}
           </div>
 
-          {/* Investments and Events Section */}
           <div className="lg:col-span-2 flex flex-col gap-6">
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
                   <Briefcase className="h-7 w-7 text-accent" />
-                  Investment Opportunities
+                  Investment Opportunities (for {currentPlayer?.name})
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {investments.map((inv, index) => (
-                  // For simplicity, let's assume Player 1 (index 0) is making the investment.
-                  // In a real multiplayer game, you'd need to identify the active player.
-                  <InvestmentCard key={inv.id} investment={inv} onInvest={(investment, npv) => handleInvestment(0, investment, npv)} />
+                {investments.map((inv) => (
+                  <InvestmentCard 
+                    key={inv.id} 
+                    investment={inv} 
+                    onInvest={(investment, npv) => handleInvestment(investment, npv)} 
+                    isCurrentPlayer={true} // Simplified for now, assumes current player can always invest
+                                        // In a more complex setup, you might pass currentPlayerId and check inside InvestmentCard
+                  />
                 ))}
               </CardContent>
             </Card>
@@ -159,7 +188,7 @@ export default function GamePage() {
                   <div className="text-center py-6 text-muted-foreground">
                     <ShieldQuestion className="h-12 w-12 mx-auto mb-2" />
                     <p>No major market events currently. Stay vigilant!</p>
-                    <Button onClick={triggerRandomMarketEvent} className="mt-4">Check for Events</Button>
+                    <Button onClick={triggerRandomMarketEvent} className="mt-4" disabled={!clientHasMounted}>Check for Events</Button>
                   </div>
                 )}
                 {currentMarketEvent && clientHasMounted && (
@@ -181,3 +210,5 @@ export default function GamePage() {
     </div>
   );
 }
+
+    
